@@ -1,0 +1,234 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link rel="Up" href="Async.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Async" rel="Chapter" href="Async.html">
+<link title="MapReduce" rel="Chapter" href="MapReduce.html">
+<link title="RemoteController" rel="Chapter" href="RemoteController.html">
+<link title="Worker" rel="Chapter" href="Worker.html">
+<link title="Protocol" rel="Chapter" href="Protocol.html">
+<link title="LocalController" rel="Chapter" href="LocalController.html">
+<link title="Combiner" rel="Chapter" href="Combiner.html">
+<link title="AQueue" rel="Chapter" href="AQueue.html"><link title="Blocking functions" rel="Section" href="#2_Blockingfunctions">
+<link title="Combining Deferred.ts" rel="Section" href="#2_CombiningDeferredts">
+<link title="Deferred data structures and communication" rel="Section" href="#2_Deferreddatastructuresandcommunication">
+<link title="Time and timeouts " rel="Section" href="#2_Timeandtimeouts">
+<link title="Input and output in Async" rel="Section" href="#2_InputandoutputinAsync">
+<link title="Error handling" rel="Section" href="#2_Errorhandling">
+<title>Async.Std</title>
+</head>
+<body>
+<div class="navbar">&nbsp;<a class="up" href="Async.html" title="Async">Up</a>
+&nbsp;</div>
+<h1>Module <a href="type_Async.Std.html">Async.Std</a></h1>
+
+<pre><span class="keyword">module</span> Std: <code class="code">sig</code> <a href="Async.Std.html">..</a> <code class="code">end</code></pre><div class="info module top">
+The common definitions for <code class="code">Async</code>.  Async programs typically only
+    <code class="code">open Async.Std</code>, the modules within <code class="code">Async.Std</code> are typically referred to
+    explicitly.<br>
+</div>
+<hr width="100%">
+<br>
+<h2 id="2_Blockingfunctions">Blocking functions</h2><br>
+
+<pre><span class="keyword">module</span> <a href="Async.Std.Deferred.html">Deferred</a>: <code class="code">sig</code> <a href="Async.Std.Deferred.html">..</a> <code class="code">end</code></pre><br>
+<code class="code">'a Deferred.t</code> is the most important type in the <code class="code">Async</code> library.  An
+    <code class="code">'a Deferred.t</code> represents a value that will become determined
+    when an asynchronous computation completes.
+<p>
+
+    A deferred can be "undetermined" or "determined". A deferred that is
+    undetermined may at some point become determined with value v, and will
+    henceforth always be determined with value v.
+<p>
+
+    Any Async function that needs to wait for something to happen (i.e.
+    "block") will return a <code class="code">Deferred.t</code>.  The function itself will return
+    immediately, allowing the calling program to continue to do other tasks.
+    Thus blocking functions should have the type <code class="code">'a -&gt; 'b Deferred.t</code>.<br>
+
+<pre><span id="VAL(>>=)"><span class="keyword">val</span> (&gt;&gt;=)</span> : <code class="type">'a <a href="Async.Std.Deferred.html#TYPEt">Deferred.t</a> -><br>       ('a -> 'b <a href="Async.Std.Deferred.html#TYPEt">Deferred.t</a>) -> 'b <a href="Async.Std.Deferred.html#TYPEt">Deferred.t</a></code></pre><div class="info ">
+<code class="code">&gt;&gt;=</code> is used to chain blocking functions together.  <code class="code">x &gt;&gt;= g</code> will cause
+    <code class="code">g</code> to be run after <code class="code">x</code> is determined, with the value of <code class="code">x</code> as input.  The
+    deferred returned by <code class="code">(&gt;&gt;=)</code> will become determined when <code class="code">g</code> completes.
+<p>
+
+    There are two common stylistic idioms used when using <code class="code">&gt;&gt;=</code>.  The first is
+    that many functions can be joined together with <code class="code">&gt;&gt;=</code> without parentheses.
+    For example, if one wants to wait for <code class="code">x</code> to be determined, and then run
+    <code class="code">f</code> on the result, and then run the blocking function <code class="code">g</code> on the output of
+    <code class="code">f</code>, and then run the blocking function <code class="code">h</code> on the result of <code class="code">f</code>, one would
+    write the following:
+    <pre class="codepre"><code class="code">    x &gt;&gt;= f &gt;&gt;= g &gt;&gt;= h
+    </code></pre>
+    When splitting these invocations on multiple lines, one typically writes
+    <pre class="codepre"><code class="code">    x
+    &gt;&gt;= f
+    &gt;&gt;= g
+    &gt;&gt;= h
+    </code></pre>
+<p>
+
+    The second idiom is that anonymous function definitions are typically
+    written inline and without parentheses.  For example, in the above sequence,
+    if we wanted to print the value that is passed from f to g, we would write:
+    <pre class="codepre"><code class="code">    x &gt;&gt;= f &gt;&gt;= fun y -&gt;
+    print_endline y;
+    g y &gt;&gt;= h
+    </code></pre>
+    This is the same as
+    <pre class="codepre"><code class="code"> x &gt;&gt;= (f &gt;&gt;= (fun y -&gt; print_endline y; (g y &gt;&gt;= h))) </code></pre>
+    but the way it is written looks more like imperative code: first run <code class="code">f</code> on
+    <code class="code">x</code> and call the result <code class="code">y</code>.  Then print <code class="code">y</code>.  Then run <code class="code">g</code> on <code class="code">y</code> and pass
+    the result to h.
+<p>
+
+    It is helpful to think of the pattern
+    <pre class="codepre"><code class="code">    f x &gt;&gt;= fun y -&gt;
+    </code></pre>
+    as being analogous to
+    <pre class="codepre"><code class="code">    let y = f x in
+    </code></pre>
+    This is why <code class="code">(&gt;&gt;=)</code> is also called "bind".<br>
+</div>
+
+<pre><span id="VAL(>>|)"><span class="keyword">val</span> (&gt;&gt;|)</span> : <code class="type">'a <a href="Async.Std.Deferred.html#TYPEt">Deferred.t</a> -> ('a -> 'b) -> 'b <a href="Async.Std.Deferred.html#TYPEt">Deferred.t</a></code></pre><div class="info ">
+<code class="code">&gt;&gt;|</code> is similar to <code class="code">&gt;&gt;=</code>, but it is used for non-blocking functions.  It
+    can be mixed to chains of functions joined by <code class="code">&gt;&gt;=</code>.  For example, the
+    provided function <code class="code">WordCount.App.Make.main</code> is implemented as follows:
+    <pre class="codepre"><code class="code">    Deferred.List.map Reader.file_lines filename
+    &gt;&gt;| List.flatten
+    &gt;&gt;= map_reduce
+    &gt;&gt;= output
+    </code></pre>
+<p>
+
+    filenames is a list of file names: <code class="code">["foo.txt"; "bar.txt"]</code>.
+    <a href="Async.Std.Deferred.List.html#VALmap"><code class="code">Deferred.List.map</code></a> is like List.map except that it works with blocking
+    functions like <a href="Async.Std.Reader.html#VALfile_lines"><code class="code">Reader.file_lines</code></a>.
+<p>
+
+    The output of this line is a list containing a list of lines of <code class="code">"foo.txt"</code>
+    and a list of lines of <code class="code">"bar.txt"</code>.  We want to combine these into a single
+    list, so we pass them through the <code class="code">List.flatten</code> function.
+    Since <code class="code">List.flatten</code> is non-blocking, we use <code class="code">&gt;&gt;|</code>.  We then
+    pass the combined list of lines to the <code class="code">map_reduce</code> function
+    (using <code class="code">&gt;&gt;=</code> since <code class="code">map_reduce</code> is a blocking function), and
+    finally pass the results of <code class="code">map_reduce</code> to the (blocking)
+    <code class="code">output</code> function.
+<p>
+
+    Be aware that <code class="code">&gt;&gt;|</code> does not play as nicely with anonymous functions as
+    <code class="code">&gt;&gt;=</code> does.  The following code does <b>not</b> work:
+    <pre class="codepre"><code class="code">    f x &gt;&gt;| fun y -&gt;
+    print_endline y;
+    g y &gt;&gt;= h
+    </code></pre>
+    A good test of your understanding of the <code class="code">&gt;&gt;=</code> and <code class="code">&gt;&gt;|</code> syntax would be to
+    explain why.<br>
+</div>
+
+<pre><span id="VALreturn"><span class="keyword">val</span> return</span> : <code class="type">'a -> 'a <a href="Async.Std.Deferred.html#TYPEt">Deferred.t</a></code></pre><div class="info ">
+<code class="code">return</code> is used to create a <a href="Async.Std.Deferred.html#TYPEt"><code class="code">Deferred.t</code></a> that is immediately determined
+    with the provided value.  It is often used to designate the return value of
+    a function implemented using a chain of <code class="code">&gt;&gt;=</code> expressions.  For example:
+    <pre class="codepre"><code class="code">    let run_fgh x =
+      f x &gt;&gt;= fun y -&gt;
+      g y &gt;&gt;= fun z -&gt;
+      h z &gt;&gt;= fun _ -&gt;
+      return (y,z)
+    </code></pre>
+    will first run f on x; when that completes it will run g, and then h.  The
+    result of the deferred created by <code class="code">run_fgh</code> will be the pair <code class="code">(y,z)</code>.<br>
+</div>
+<br>
+<h2 id="2_CombiningDeferredts">Combining <code class="code">Deferred.t</code>s</h2><br>
+
+<pre><span id="VALdon't_wait_for"><span class="keyword">val</span> don't_wait_for</span> : <code class="type">unit <a href="Async.Std.Deferred.html#TYPEt">Deferred.t</a> -> unit</code></pre><div class="info ">
+a convenience function for ignoring a deferred value<br>
+</div>
+
+<pre><span id="VALnever"><span class="keyword">val</span> never</span> : <code class="type">unit -> 'a <a href="Async.Std.Deferred.html#TYPEt">Deferred.t</a></code></pre><div class="info ">
+a deferred that is never determined<br>
+</div>
+<br>
+See also <a href="Async.Std.Deferred.html#VALboth"><code class="code">Deferred.both</code></a>, <a href="Async.Std.Deferred.html#VALany"><code class="code">Deferred.any</code></a> and <a href="Async.Std.Deferred.html#VALall"><code class="code">Deferred.all</code></a>.<br>
+<br>
+<h2 id="2_Deferreddatastructuresandcommunication">Deferred data structures and communication</h2><br>
+
+<pre><span class="keyword">module</span> <a href="Async.Std.Ivar.html">Ivar</a>: <code class="code">sig</code> <a href="Async.Std.Ivar.html">..</a> <code class="code">end</code></pre><div class="info">
+Ivars are like write-once <code class="code">ref</code>s.
+</div>
+
+<pre><span class="keyword">module</span> <a href="Async.Std.Pipe.html">Pipe</a>: <code class="code">sig</code> <a href="Async.Std.Pipe.html">..</a> <code class="code">end</code></pre><div class="info">
+A Pipe is a first-in first-out communication channel.
+</div>
+<br>
+The <a href="Async.Std.Deferred.List.html"><code class="code">Deferred.List</code></a> contains blocking versions of many familiar List
+    module functions.<br>
+<br>
+<h2 id="2_Timeandtimeouts">Time and timeouts </h2><br>
+<br>
+Note: Use the function <code class="code">Core.Std.sec</code> to create <code class="code">Core.Std.Time.Span.t</code>s.
+    It takes in a <code class="code">float</code> <code class="code">t</code> and produces a <code class="code">Time.Span.t</code> representing <code class="code">t</code>
+    seconds.<br>
+
+<pre><span id="VALafter"><span class="keyword">val</span> after</span> : <code class="type">Core.Std.Time.Span.t -> unit <a href="Async.Std.Deferred.html#TYPEt">Deferred.t</a></code></pre><div class="info ">
+a deferred that becomes determined after the given amount of time<br>
+</div>
+
+<pre><span id="VALwith_timeout"><span class="keyword">val</span> with_timeout</span> : <code class="type">Core.Std.Time.Span.t -><br>       'a <a href="Async.Std.Deferred.html#TYPEt">Deferred.t</a> -> [ `Result of 'a | `Timeout ] <a href="Async.Std.Deferred.html#TYPEt">Deferred.t</a></code></pre><div class="info ">
+<code class="code">with_timeout t x</code> will become determined with <code class="code">`Result v</code> if <code class="code">x</code> becomes
+    determined with <code class="code">v</code> within the timespan <code class="code">t</code>.  Otherwise, the value will be
+    <code class="code">`Timeout</code>.<br>
+</div>
+
+<pre><span id="VALevery"><span class="keyword">val</span> every</span> : <code class="type">?start:unit <a href="Async.Std.Deferred.html#TYPEt">Deferred.t</a> -><br>       ?stop:unit <a href="Async.Std.Deferred.html#TYPEt">Deferred.t</a> -><br>       Core.Std.Time.Span.t -> (unit -> unit) -> unit</code></pre><div class="info ">
+<code class="code">every t f</code> schedules <code class="code">f</code> to be executed every <code class="code">t</code> seconds.  If the
+    arguments <code class="code">?start</code> or <code class="code">?finish</code> are supplied, <code class="code">f</code> will not be scheduled
+    before <code class="code">start</code> becomes determined or after <code class="code">finish</code> does.<br>
+</div>
+<br>
+<h2 id="2_InputandoutputinAsync">Input and output in Async</h2><br>
+
+<pre><span id="VALprintf"><span class="keyword">val</span> printf</span> : <code class="type">('a, unit, string, unit) format4 -> 'a</code></pre><div class="info ">
+This function is an Async-friendly version of
+    <a href="http://caml.inria.fr/pub/docs/manual-ocaml/libref/Printf.html"> <code class="code">Printf.printf</code></a>,
+    which is very useful for debugging.<br>
+</div>
+
+<pre><span class="keyword">module</span> <a href="Async.Std.Reader.html">Reader</a>: <code class="code">sig</code> <a href="Async.Std.Reader.html">..</a> <code class="code">end</code></pre><div class="info">
+The Reader module (not to be confused with <a href="Async.Std.Pipe.Reader.html"><code class="code">Pipe.Reader</code></a>) is for doing
+    network and file input.
+</div>
+
+<pre><span class="keyword">module</span> <a href="Async.Std.Writer.html">Writer</a>: <code class="code">sig</code> <a href="Async.Std.Writer.html">..</a> <code class="code">end</code></pre><div class="info">
+The Writer module (not to be confused with <a href="Async.Std.Pipe.Writer.html"><code class="code">Pipe.Writer</code></a>) is for doing
+    network and file output.
+</div>
+
+<pre><span class="keyword">module</span> <a href="Async.Std.Socket.html">Socket</a>: <code class="code">sig</code> <a href="Async.Std.Socket.html">..</a> <code class="code">end</code></pre><div class="info">
+The socket module contains types necessary for working with the <code class="code">Tcp</code>
+    module; You do not need to use it directly - it is only here for
+    completeness.
+</div>
+
+<pre><span class="keyword">module</span> <a href="Async.Std.Tcp.html">Tcp</a>: <code class="code">sig</code> <a href="Async.Std.Tcp.html">..</a> <code class="code">end</code></pre><div class="info">
+Functions for connecting to remote hosts over the network.
+</div>
+<br>
+<h2 id="2_Errorhandling">Error handling</h2><br>
+
+<pre><span id="VALtry_with"><span class="keyword">val</span> try_with</span> : <code class="type">(unit -> 'a <a href="Async.Std.Deferred.html#TYPEt">Deferred.t</a>) -><br>       [ `Err of exn | `Ok of 'a ] <a href="Async.Std.Deferred.html#TYPEt">Deferred.t</a></code></pre><div class="info ">
+<code class="code">try_with f</code> runs the blocking function <code class="code">f</code>, and returns <code class="code">`Ok x</code> if <code class="code">f ()</code>
+    returns <code class="code">x</code>.  If <code class="code">f ()</code> raises the exception <code class="code">e</code>, then <code class="code">try_with f</code> returns
+    <code class="code">`Err e</code>.<br>
+</div>
+</body></html>

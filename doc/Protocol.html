@@ -1,0 +1,58 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Worker.html">
+<link rel="next" href="LocalController.html">
+<link rel="Up" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Async" rel="Chapter" href="Async.html">
+<link title="MapReduce" rel="Chapter" href="MapReduce.html">
+<link title="RemoteController" rel="Chapter" href="RemoteController.html">
+<link title="Worker" rel="Chapter" href="Worker.html">
+<link title="Protocol" rel="Chapter" href="Protocol.html">
+<link title="LocalController" rel="Chapter" href="LocalController.html">
+<link title="Combiner" rel="Chapter" href="Combiner.html">
+<link title="AQueue" rel="Chapter" href="AQueue.html"><link title="Marshaling and unmarshaling" rel="Section" href="#2_Marshalingandunmarshaling">
+<link title="Mapper/Controller protocol" rel="Section" href="#2_MapperControllerprotocol">
+<title>Protocol</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Worker.html" title="Worker">Previous</a>
+&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;<a class="post" href="LocalController.html" title="LocalController">Next</a>
+</div>
+<h1>Module <a href="type_Protocol.html">Protocol</a></h1>
+
+<pre><span class="keyword">module</span> Protocol: <code class="code">sig</code> <a href="Protocol.html">..</a> <code class="code">end</code></pre><div class="info module top">
+The messages sent between the worker and the controller.<br>
+</div>
+<hr width="100%">
+<br>
+<h2 id="2_Marshalingandunmarshaling">Marshaling and unmarshaling</h2><br>
+
+<pre><span class="keyword">module type</span> <a href="Protocol.Marshalable.html">Marshalable</a> = <code class="code">sig</code> <a href="Protocol.Marshalable.html">..</a> <code class="code">end</code></pre><div class="info">
+Send or receive marshaled messages through Reader or Writer
+</div>
+<br>
+Both the <a href="Protocol.WorkerRequest.html"><code class="code">Protocol.WorkerRequest</code></a> and <a href="Protocol.WorkerResponse.html"><code class="code">Protocol.WorkerResponse</code></a> modules below include the
+    <a href="Protocol.Marshalable.html"><code class="code">Protocol.Marshalable</code></a> interface, meaning that you can send and receive
+    <a href="Protocol.WorkerRequest.html#TYPEt"><code class="code">Protocol.WorkerRequest.t</code></a>s and <a href="Protocol.WorkerResponse.html#TYPEt"><code class="code">Protocol.WorkerResponse.t</code></a>s over the network.  For
+    example, to send a <code class="code">WorkerRequest.t</code> <code class="code">msg</code> over the channel <code class="code">w</code>, you should
+    call <code class="code">WorkerRequest.send w msg</code>.<br>
+<br>
+<h2 id="2_MapperControllerprotocol">Mapper/Controller protocol</h2><br>
+
+<pre><span class="keyword">module</span> <a href="Protocol.WorkerRequest.html">WorkerRequest</a>: <div class="sig_block"><code class="code">functor (</code><code class="code">Job</code><code class="code"> : </code><code class="type"><a href="MapReduce.Job.html">MapReduce.Job</a></code><code class="code">) -&gt; </code><code class="code">sig</code> <a href="Protocol.WorkerRequest.html">..</a> <code class="code">end</code></div></pre><div class="info">
+Messages from the controller to the worker
+</div>
+
+<pre><span class="keyword">module</span> <a href="Protocol.WorkerResponse.html">WorkerResponse</a>: <div class="sig_block"><code class="code">functor (</code><code class="code">Job</code><code class="code"> : </code><code class="type"><a href="MapReduce.Job.html">MapReduce.Job</a></code><code class="code">) -&gt; </code><code class="code">sig</code> <a href="Protocol.WorkerResponse.html">..</a> <code class="code">end</code></div></pre><div class="info">
+Messages from the worker to the controller
+</div>
+</body></html>

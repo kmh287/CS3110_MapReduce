@@ -1,0 +1,271 @@
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Async" rel="Chapter" href="Async.html">
+<link title="MapReduce" rel="Chapter" href="MapReduce.html">
+<link title="RemoteController" rel="Chapter" href="RemoteController.html">
+<link title="Worker" rel="Chapter" href="Worker.html">
+<link title="Protocol" rel="Chapter" href="Protocol.html">
+<link title="LocalController" rel="Chapter" href="LocalController.html">
+<link title="Combiner" rel="Chapter" href="Combiner.html">
+<link title="AQueue" rel="Chapter" href="AQueue.html"><title>Index of values</title>
+</head>
+<body>
+<div class="navbar">&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;</div>
+<h1>Index of values</h1>
+<table>
+<tr><td align="left"><br></td></tr>
+<tr><td><a href="Async.Std.html#VAL(>>=)">(&gt;&gt;=)</a> [<a href="Async.Std.html">Async.Std</a>]</td>
+<td><div class="info">
+<code class="code">&gt;&gt;=</code> is used to chain blocking functions together.
+</div>
+</td></tr>
+<tr><td><a href="Async.Std.html#VAL(>>|)">(&gt;&gt;|)</a> [<a href="Async.Std.html">Async.Std</a>]</td>
+<td><div class="info">
+<code class="code">&gt;&gt;|</code> is similar to <code class="code">&gt;&gt;=</code>, but it is used for non-blocking functions.
+</div>
+</td></tr>
+<tr><td align="left"><br>A</td></tr>
+<tr><td><a href="Async.Std.html#VALafter">after</a> [<a href="Async.Std.html">Async.Std</a>]</td>
+<td><div class="info">
+a deferred that becomes determined after the given amount of time
+</div>
+</td></tr>
+<tr><td><a href="Async.Std.Deferred.html#VALall">all</a> [<a href="Async.Std.Deferred.html">Async.Std.Deferred</a>]</td>
+<td><div class="info">
+<code class="code">all ts</code> returns a deferred that becomes determined when every t in ts is
+      determined.
+</div>
+</td></tr>
+<tr><td><a href="Async.Std.Deferred.html#VALany">any</a> [<a href="Async.Std.Deferred.html">Async.Std.Deferred</a>]</td>
+<td><div class="info">
+<code class="code">any ts</code> returns a deferred that is fulfilled when any of the underlying
+      deferreds is fulfilled
+</div>
+</td></tr>
+<tr><td align="left"><br>B</td></tr>
+<tr><td><a href="Async.Std.Deferred.html#VALboth">both</a> [<a href="Async.Std.Deferred.html">Async.Std.Deferred</a>]</td>
+<td><div class="info">
+<code class="code">both t1 t2</code> becomes determined after both t1 and t2 become determined.
+</div>
+</td></tr>
+<tr><td align="left"><br>C</td></tr>
+<tr><td><a href="Combiner.Make.html#VALcombine">combine</a> [<a href="Combiner.Make.html">Combiner.Make</a>]</td>
+<td></td></tr>
+<tr><td><a href="Async.Std.Tcp.html#VALconnect">connect</a> [<a href="Async.Std.Tcp.html">Async.Std.Tcp</a>]</td>
+<td><div class="info">
+Create a connection to the given address.
+</div>
+</td></tr>
+<tr><td><a href="AQueue.html#VALcreate">create</a> [<a href="AQueue.html">AQueue</a>]</td>
+<td></td></tr>
+<tr><td><a href="Async.Std.Pipe.html#VALcreate">create</a> [<a href="Async.Std.Pipe.html">Async.Std.Pipe</a>]</td>
+<td><div class="info">
+Creates a new pipe, and returns the reader and writer ends.
+</div>
+</td></tr>
+<tr><td><a href="Async.Std.Ivar.html#VALcreate">create</a> [<a href="Async.Std.Ivar.html">Async.Std.Ivar</a>]</td>
+<td><div class="info">
+Create a new unfilled <code class="code">Ivar.t</code>
+</div>
+</td></tr>
+<tr><td align="left"><br>D</td></tr>
+<tr><td><a href="Async.Std.html#VALdon't_wait_for">don't_wait_for</a> [<a href="Async.Std.html">Async.Std</a>]</td>
+<td><div class="info">
+a convenience function for ignoring a deferred value
+</div>
+</td></tr>
+<tr><td align="left"><br>E</td></tr>
+<tr><td><a href="Async.Std.html#VALevery">every</a> [<a href="Async.Std.html">Async.Std</a>]</td>
+<td><div class="info">
+<code class="code">every t f</code> schedules <code class="code">f</code> to be executed every <code class="code">t</code> seconds.
+</div>
+</td></tr>
+<tr><td align="left"><br>F</td></tr>
+<tr><td><a href="Async.Std.Reader.html#VALfile_contents">file_contents</a> [<a href="Async.Std.Reader.html">Async.Std.Reader</a>]</td>
+<td><div class="info">
+<code class="code">file_contents filename</code> returns the string with the full contents of the
+      file
+</div>
+</td></tr>
+<tr><td><a href="Async.Std.Reader.html#VALfile_lines">file_lines</a> [<a href="Async.Std.Reader.html">Async.Std.Reader</a>]</td>
+<td><div class="info">
+<code class="code">file_lines filename</code> returns a list of the lines in the named file.
+</div>
+</td></tr>
+<tr><td><a href="Async.Std.Ivar.html#VALfill">fill</a> [<a href="Async.Std.Ivar.html">Async.Std.Ivar</a>]</td>
+<td><div class="info">
+Fill the given <code class="code">Ivar.t</code>.
+</div>
+</td></tr>
+<tr><td><a href="Async.Std.Ivar.html#VALfill_if_empty">fill_if_empty</a> [<a href="Async.Std.Ivar.html">Async.Std.Ivar</a>]</td>
+<td><div class="info">
+Fill the given <code class="code">Ivar.t</code>.
+</div>
+</td></tr>
+<tr><td><a href="Async.Std.Deferred.List.html#VALfilter">filter</a> [<a href="Async.Std.Deferred.List.html">Async.Std.Deferred.List</a>]</td>
+<td></td></tr>
+<tr><td><a href="Async.Std.Deferred.List.html#VALfind">find</a> [<a href="Async.Std.Deferred.List.html">Async.Std.Deferred.List</a>]</td>
+<td></td></tr>
+<tr><td><a href="Async.Std.Deferred.List.html#VALfold">fold</a> [<a href="Async.Std.Deferred.List.html">Async.Std.Deferred.List</a>]</td>
+<td></td></tr>
+<tr><td align="left"><br>G</td></tr>
+<tr><td><a href="MapReduce.html#VALget_app">get_app</a> [<a href="MapReduce.html">MapReduce</a>]</td>
+<td></td></tr>
+<tr><td><a href="MapReduce.html#VALget_job">get_job</a> [<a href="MapReduce.html">MapReduce</a>]</td>
+<td></td></tr>
+<tr><td align="left"><br>I</td></tr>
+<tr><td><a href="Worker.html#VALinit">init</a> [<a href="Worker.html">Worker</a>]</td>
+<td><div class="info">
+Start the worker server.
+</div>
+</td></tr>
+<tr><td><a href="RemoteController.html#VALinit">init</a> [<a href="RemoteController.html">RemoteController</a>]</td>
+<td><div class="info">
+set up the map reduce controller to connect the the provided worker adresses
+</div>
+</td></tr>
+<tr><td><a href="Async.Std.Ivar.html#VALis_empty">is_empty</a> [<a href="Async.Std.Ivar.html">Async.Std.Ivar</a>]</td>
+<td><div class="info">
+Return true if the <code class="code">Ivar.t</code> is empty.
+</div>
+</td></tr>
+<tr><td><a href="Async.Std.Ivar.html#VALis_full">is_full</a> [<a href="Async.Std.Ivar.html">Async.Std.Ivar</a>]</td>
+<td><div class="info">
+Return true if the <code class="code">Ivar.t</code> is full.
+</div>
+</td></tr>
+<tr><td><a href="Async.Std.Deferred.List.html#VALiter">iter</a> [<a href="Async.Std.Deferred.List.html">Async.Std.Deferred.List</a>]</td>
+<td></td></tr>
+<tr><td align="left"><br>L</td></tr>
+<tr><td><a href="MapReduce.html#VALlist_apps">list_apps</a> [<a href="MapReduce.html">MapReduce</a>]</td>
+<td></td></tr>
+<tr><td><a href="MapReduce.html#VALlist_jobs">list_jobs</a> [<a href="MapReduce.html">MapReduce</a>]</td>
+<td></td></tr>
+<tr><td align="left"><br>M</td></tr>
+<tr><td><a href="MapReduce.EntryPoint.html#VALmain">main</a> [<a href="MapReduce.EntryPoint.html">MapReduce.EntryPoint</a>]</td>
+<td><div class="info">
+the entry point of an app
+</div>
+</td></tr>
+<tr><td><a href="MapReduce.Job.html#VALmap">map</a> [<a href="MapReduce.Job.html">MapReduce.Job</a>]</td>
+<td><div class="info">
+perform the map phase
+</div>
+</td></tr>
+<tr><td><a href="Async.Std.Deferred.List.html#VALmap">map</a> [<a href="Async.Std.Deferred.List.html">Async.Std.Deferred.List</a>]</td>
+<td></td></tr>
+<tr><td><a href="MapReduce.Controller.html#VALmap_reduce">map_reduce</a> [<a href="MapReduce.Controller.html">MapReduce.Controller</a>]</td>
+<td><div class="info">
+Execute that map and reduce phase of Job on the given list of inputs.
+</div>
+</td></tr>
+<tr><td align="left"><br>N</td></tr>
+<tr><td><a href="MapReduce.App.html#VALname">name</a> [<a href="MapReduce.App.html">MapReduce.App</a>]</td>
+<td><div class="info">
+a unique name for the app
+</div>
+</td></tr>
+<tr><td><a href="MapReduce.Job.html#VALname">name</a> [<a href="MapReduce.Job.html">MapReduce.Job</a>]</td>
+<td><div class="info">
+a unique name for the job
+</div>
+</td></tr>
+<tr><td><a href="Async.Std.html#VALnever">never</a> [<a href="Async.Std.html">Async.Std</a>]</td>
+<td><div class="info">
+a deferred that is never determined
+</div>
+</td></tr>
+<tr><td align="left"><br>P</td></tr>
+<tr><td><a href="AQueue.html#VALpop">pop</a> [<a href="AQueue.html">AQueue</a>]</td>
+<td></td></tr>
+<tr><td><a href="Async.Std.html#VALprintf">printf</a> [<a href="Async.Std.html">Async.Std</a>]</td>
+<td><div class="info">
+This function is an Async-friendly version of
+    <a href="http://caml.inria.fr/pub/docs/manual-ocaml/libref/Printf.html"> <code class="code">Printf.printf</code></a>,
+    which is very useful for debugging.
+</div>
+</td></tr>
+<tr><td><a href="AQueue.html#VALpush">push</a> [<a href="AQueue.html">AQueue</a>]</td>
+<td></td></tr>
+<tr><td align="left"><br>R</td></tr>
+<tr><td><a href="Async.Std.Pipe.html#VALread">read</a> [<a href="Async.Std.Pipe.html">Async.Std.Pipe</a>]</td>
+<td><div class="info">
+Reads data from the reader end of the pipe.
+</div>
+</td></tr>
+<tr><td><a href="Async.Std.Ivar.html#VALread">read</a> [<a href="Async.Std.Ivar.html">Async.Std.Ivar</a>]</td>
+<td><div class="info">
+<code class="code">read iv</code> returns the <code class="code">Deferred.t</code> associated with <code class="code">iv</code>.
+</div>
+</td></tr>
+<tr><td><a href="Async.Std.Reader.html#VALread_line">read_line</a> [<a href="Async.Std.Reader.html">Async.Std.Reader</a>]</td>
+<td><div class="info">
+reads a single line from the given input stream.
+</div>
+</td></tr>
+<tr><td><a href="Protocol.Marshalable.html#VALreceive">receive</a> [<a href="Protocol.Marshalable.html">Protocol.Marshalable</a>]</td>
+<td></td></tr>
+<tr><td><a href="MapReduce.Job.html#VALreduce">reduce</a> [<a href="MapReduce.Job.html">MapReduce.Job</a>]</td>
+<td><div class="info">
+perform the reduce phase
+</div>
+</td></tr>
+<tr><td><a href="MapReduce.html#VALregister_app">register_app</a> [<a href="MapReduce.html">MapReduce</a>]</td>
+<td></td></tr>
+<tr><td><a href="MapReduce.html#VALregister_job">register_job</a> [<a href="MapReduce.html">MapReduce</a>]</td>
+<td></td></tr>
+<tr><td><a href="Async.Std.html#VALreturn">return</a> [<a href="Async.Std.html">Async.Std</a>]</td>
+<td><div class="info">
+<code class="code">return</code> is used to create a <a href="Async.Std.Deferred.html#TYPEt"><code class="code">Deferred.t</code></a> that is immediately determined
+    with the provided value.
+</div>
+</td></tr>
+<tr><td><a href="Worker.Make.html#VALrun">run</a> [<a href="Worker.Make.html">Worker.Make</a>]</td>
+<td><div class="info">
+Handle the requests for a single connection.
+</div>
+</td></tr>
+<tr><td align="left"><br>S</td></tr>
+<tr><td><a href="Protocol.Marshalable.html#VALsend">send</a> [<a href="Protocol.Marshalable.html">Protocol.Marshalable</a>]</td>
+<td></td></tr>
+<tr><td align="left"><br>T</td></tr>
+<tr><td><a href="Async.Std.Tcp.html#VALto_host_and_port">to_host_and_port</a> [<a href="Async.Std.Tcp.html">Async.Std.Tcp</a>]</td>
+<td><div class="info">
+Interprets a string and int as a network host and port that can be
+      connected to.
+</div>
+</td></tr>
+<tr><td><a href="Async.Std.html#VALtry_with">try_with</a> [<a href="Async.Std.html">Async.Std</a>]</td>
+<td><div class="info">
+<code class="code">try_with f</code> runs the blocking function <code class="code">f</code>, and returns <code class="code">`Ok x</code> if <code class="code">f ()</code>
+    returns <code class="code">x</code>.
+</div>
+</td></tr>
+<tr><td align="left"><br>W</td></tr>
+<tr><td><a href="Async.Std.html#VALwith_timeout">with_timeout</a> [<a href="Async.Std.html">Async.Std</a>]</td>
+<td><div class="info">
+<code class="code">with_timeout t x</code> will become determined with <code class="code">`Result v</code> if <code class="code">x</code> becomes
+    determined with <code class="code">v</code> within the timespan <code class="code">t</code>.
+</div>
+</td></tr>
+<tr><td><a href="Async.Std.Pipe.html#VALwrite">write</a> [<a href="Async.Std.Pipe.html">Async.Std.Pipe</a>]</td>
+<td><div class="info">
+Writes data into the writer end of a pipe.
+</div>
+</td></tr>
+<tr><td><a href="Async.Std.Writer.html#VALwrite_line">write_line</a> [<a href="Async.Std.Writer.html">Async.Std.Writer</a>]</td>
+<td><div class="info">
+Writes a line of text to the given output stream.
+</div>
+</td></tr>
+</table>
+</body>
+</html>

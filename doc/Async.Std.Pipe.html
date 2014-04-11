@@ -1,0 +1,51 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Async.Std.Ivar.html">
+<link rel="next" href="Async.Std.Reader.html">
+<link rel="Up" href="Async.Std.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Async" rel="Chapter" href="Async.html">
+<link title="MapReduce" rel="Chapter" href="MapReduce.html">
+<link title="RemoteController" rel="Chapter" href="RemoteController.html">
+<link title="Worker" rel="Chapter" href="Worker.html">
+<link title="Protocol" rel="Chapter" href="Protocol.html">
+<link title="LocalController" rel="Chapter" href="LocalController.html">
+<link title="Combiner" rel="Chapter" href="Combiner.html">
+<link title="AQueue" rel="Chapter" href="AQueue.html"><title>Async.Std.Pipe</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Async.Std.Ivar.html" title="Async.Std.Ivar">Previous</a>
+&nbsp;<a class="up" href="Async.Std.html" title="Async.Std">Up</a>
+&nbsp;<a class="post" href="Async.Std.Reader.html" title="Async.Std.Reader">Next</a>
+</div>
+<h1>Module <a href="type_Async.Std.Pipe.html">Async.Std.Pipe</a></h1>
+
+<pre><span class="keyword">module</span> Pipe: <code class="code">sig</code> <a href="Async.Std.Pipe.html">..</a> <code class="code">end</code></pre><div class="info module top">
+A Pipe is a first-in first-out communication channel.  A pipe has a
+    "writer" end and a "reader" end.  The writer feeds values into
+    the pipe and the reader can subsequently read them back out.<br>
+</div>
+<hr width="100%">
+
+<pre><span class="keyword">module</span> <a href="Async.Std.Pipe.Reader.html">Reader</a>: <code class="code">sig</code> <a href="Async.Std.Pipe.Reader.html">..</a> <code class="code">end</code></pre>
+<pre><span class="keyword">module</span> <a href="Async.Std.Pipe.Writer.html">Writer</a>: <code class="code">sig</code> <a href="Async.Std.Pipe.Writer.html">..</a> <code class="code">end</code></pre>
+<pre><span id="VALcreate"><span class="keyword">val</span> create</span> : <code class="type">unit -> 'a <a href="Async.Std.Pipe.Reader.html#TYPEt">Reader.t</a> * 'a <a href="Async.Std.Pipe.Writer.html#TYPEt">Writer.t</a></code></pre><div class="info ">
+Creates a new pipe, and returns the reader and writer ends.<br>
+</div>
+
+<pre><span id="VALwrite"><span class="keyword">val</span> write</span> : <code class="type">'a <a href="Async.Std.Pipe.Writer.html#TYPEt">Writer.t</a> -> 'a -> unit <a href="Async.Std.Deferred.html#TYPEt">Deferred.t</a></code></pre><div class="info ">
+Writes data into the writer end of a pipe.<br>
+</div>
+
+<pre><span id="VALread"><span class="keyword">val</span> read</span> : <code class="type">'a <a href="Async.Std.Pipe.Reader.html#TYPEt">Reader.t</a> -> [ `Eof | `Ok of 'a ] <a href="Async.Std.Deferred.html#TYPEt">Deferred.t</a></code></pre><div class="info ">
+Reads data from the reader end of the pipe.  Returns <code class="code">`Eof</code> if the pipe
+      has been closed (we have not documented the <code class="code">close</code> function here).<br>
+</div>
+</body></html>

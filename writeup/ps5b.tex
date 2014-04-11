@@ -1,0 +1,664 @@
+\documentclass{pset}
+
+\usepackage{tikz}
+\usetikzlibrary{matrix}
+\usetikzlibrary{calc}
+\usetikzlibrary{positioning}
+\usetikzlibrary{decorations}
+\usetikzlibrary{decorations.pathreplacing}
+\usetikzlibrary{arrows}
+
+\psnum{5b}
+\date{Due Thursday, April 17}
+\versionnumber{1}
+
+\begin{document}
+\maketitle{}
+
+\section*{Overview}
+
+Many modern computational problems require processing very large data sets.
+Google's MapReduce framework is a platform for distributing programs that
+handle big data across a large number of computers.
+
+In this problem set, you will implement a simplified version of the MapReduce
+framework.  You will also implement various applications that make use of your
+framework to process large data sets.
+
+\section*{Objectives}
+
+This assignment is designed to help you learn the following skills:
+\begin{itemize}
+\item Writing asynchronous programs in an event-driven style
+\item Developing distributed systems
+\item Working with the MapReduce paradigm
+\item Developing software with a partner
+\end{itemize}
+
+This assignment also has a small component on writing formal proofs.
+
+\section*{Recommended Reading}
+
+\begin{itemize}
+\item We have provided \link{http://www.cs.cornell.edu/Courses/cs3110/2014sp/hw/5/doc/index.html}{documentation}
+      for a subset of the Async library that should be sufficient for this
+      assignment.
+      \begin{note}{Important}
+      Async contains a very large number of libraries and functions.  While you
+      are free to use anything from the full Async library, sticking to the
+      subset we have documented will make the project simpler.
+      \end{note}
+\item Real World OCaml, \link{https://realworldocaml.org/v1/en/html/concurrent-programming-with-async.html}{chapter 18}
+\item Lectures \link{http://www.cs.cornell.edu/courses/cs3110/2014sp/lectures/17/concurrency.html}{17} and
+               \link{http://www.cs.cornell.edu/courses/cs3110/2014sp/lecture_notes.html}{18},
+      recitation 
+               \link{http://www.cs.cornell.edu/courses/cs3110/2014sp/lecture_notes.html}{17}.
+\item \link{http://git-scm.com/book/en/Getting-Started}{Pro Git}, chapters 1 and 2
+\end{itemize}
+
+\newpage{}
+
+\part{Software engineering}
+
+This problem set is larger than previous problem sets.  To help you manage the
+complexity, you will be required to work with a partner, make use of version
+control software, and meet with a TA to discuss your approach.
+
+\subsection*{Partners}
+
+You are required to work with a partner for this problem set.  You and your
+partner should meet early to jointly discuss your design and division of
+responsibility.
+
+Each partner is responsible for understanding all parts of the assignment, but
+your choice of who writes what code is up to you.
+
+\subsection*{Source control}
+
+You must use a version control system to manage your development.  We
+recommend \filename{git}, but you are free to use another system if you prefer.
+Both \link{http://github.com/}{github} and
+\link{http://bitbucket.com/}{bitbucket} provide free private git repositories
+for educational purposes.
+
+You should submit your source control logs.  We will be looking for small
+self-contained commits with clear commit messages.  You can generate a git log
+using the command
+\begin{ocaml}
+git log --stat > log.txt
+\end{ocaml}
+
+\subsection*{Problem set check-in}
+
+You are required to attend a short meeting with your partner and a TA.  You
+should come to the meeting prepared to discuss your approach to the assignment,
+the division of labor between yourself and your partner, and any questions you
+may have.
+
+Meetings will be held during normal consulting hours during the week of the
+7th.  You should sign up for a slot on CMS.
+
+\newpage{}
+
+\part{Async warmup}
+\label{part:warmup}
+These exercises are intended to get you used to asynchronous computation and
+the Async programming environment.
+
+\exercise{}
+
+Write  a function \code{fork} that takes a deferred and two blocking functions,
+and runs the two functions concurrently when the deferred becomes determined:
+
+\begin{ocaml}
+val fork : 'a Deferred.t -> ('a -> 'b Deferred.t)
+                         -> ('a -> 'c Deferred.t) -> unit
+\end{ocaml}
+
+The output of the two blocking functions should be ignored.
+
+\exercise{}
+Using \emph{only} \code{(>>=)}, \code{return}, and the ordinary \code{List}
+module functions, implement a function with the same specification as
+\code{Deferred.List.map}:
+\begin{ocaml}
+val deferred_map : 'a list -> ('a -> 'b Deferred.t) -> 'b list Deferred.t
+\end{ocaml}
+This function should take a list \code{l} and a blocking function \code{f}, and
+should apply \code{f} in parallel to each element of \code{l}.  When all of the
+calls to \code{f} are complete, \code{deferred_map} should return a list
+containing all of their values.
+
+\exercise{}
+
+Implement the asynchronous queue interface defined in \filename{aQueue.mli}.
+You may find the \code{Async.Std.Pipe} module useful for this exercise.
+
+% \newpage{}
+% \exercise{}
+% 
+% Write a function \code{backup_plan} that takes a list of blocking functions and
+% tries them one at a time, with a 5 second delay in between.  It should return
+% a \code{Deferred.t} that becomes determined when the first of the jobs
+% finishes.  Once any of the jobs have been successfully completed, no new jobs
+% should be started.
+% 
+% For example, suppose that we have jobs \code{j1}, \code{j2}, \code{j3}, and
+% \code{j4}.  Suppose that \code{j1} takes 11 seconds.  \code{j2} takes 9 seconds,
+% \code{j3} takes 7 seconds, and \code{j4} takes 25 seconds.  Calling
+% \code{backup_plan [j1; j2; j3; j4]} would initiate the following sequence of
+% events:
+% 
+% \begin{tikzpicture}[
+%   y=-0.25cm,
+%   timeline/.style={[-]}
+% ]
+% 
+% \matrix (labels) at (1,-1) [matrix of nodes,anchor=north west,nodes={anchor=base west}] {
+%   |(js1)|0:00: $J_1$ starts \\
+%   |(js2)|0:05: $J_2$ starts \\
+%   |(js3)|0:10: $J_3$ starts \\
+%   |(jf2)|0:11: $J_2$ finishes with result $R_2$ \\
+%   |(ret)|0:11: the deferred returned by \texttt{backup\_plan} is determined with value $R_2$ \\
+%   |(jf1)|0:14: $J_1$ finishes with result $R_1$ \\
+%   |(jf3)|0:17: $J_3$ finishes with result $R_3$ \\
+%   |(js4)|      $J_4$ is never run, because a result has been computed before it is scheduled \\
+% };
+% 
+% \coordinate (t-js1) at (0,0);
+% \coordinate (t-js2) at (0,5);
+% \coordinate (t-js3) at (0,10);
+% \coordinate (t-jf2) at (0,11);
+% \coordinate (t-ret) at (0,11);
+% \coordinate (t-jf1) at (0,14);
+% \coordinate (t-jf3) at (0,17);
+% \coordinate (t-js4) at (0,15);
+% 
+% \draw[->] (0,-1) node[above] {time} -- (0,20);
+% 
+% \coordinate (tl) at (-.1,0);
+% \coordinate (tr) at (+.1,0);
+% 
+% \foreach \i in {js1,js2,js3,jf2,ret,jf1,jf3}
+%   \draw (\i.west) -- (tr |- t-\i) -- (tl |- t-\i);
+% 
+% \draw[dotted] (js4.west) -- (tr |- t-js4) -- (tl |- t-js4);
+% 
+% \foreach \j in {1,2,3} {
+%   \draw[dotted]   (0,0   |- t-js\j) -- (-\j,0 |- t-js\j);
+%   \draw[dotted]   (0,0   |- t-jf\j) -- (-\j,0 |- t-jf\j);
+%   \draw[timeline] (-\j,0 |- t-js\j) -- node[near start,fill=white,inner sep=2pt] {$J_\j$} (-\j,0 |- t-jf\j);
+% }
+% 
+% %\draw[->] (time |- 0,-.1) -- (time |- 0,2);
+% \end{tikzpicture}
+% 
+% You may find the \code{IVar} module useful for this exercise.
+% 
+\newpage{}
+\part{MapReduce Framework}
+
+Modern applications rely on the ability to manipulate massive data sets in an
+efficient manner.  One technique for handling large data sets is to distribute
+storage and computation across many computers.  Google's MapReduce is a
+computational framework that applies functional programming techniques to
+parallelize applications.
+
+\subsection*{MapReduce Overview}
+
+MapReduce was spawned from the observation that a wide variety of applications
+can be structured into a \emph{map phase}, which transforms independent data
+points, and a \emph{reduce phase} which combines the transformed data in a
+meaningful way.  This is a very natural generalization of folding.
+
+MapReduce jobs provide the code to run in these two phases by implementing the
+\code{MapReduce.Job} interface.  A MapReduce Job is executed as follows:
+\begin{itemize}
+\item The \code{map} function takes a single \code{input} and transforms the
+      value into a collection of intermediate key, value pairs.  The \code{map}
+      function is called once for each element of the input list.
+      \begin{ocaml}
+      val map : input -> (key * inter) list Deferred.t
+      \end{ocaml}
+
+\item The \code{map} results are then combined --- values associated with the
+      same key are merged into a single list.
+
+\item Finally, the \code{reduce} function takes a \code{key} and an \code{inter list}
+      to compute the output corresponding to that key.
+      \code{reduce} is called once for each independent key.
+      \begin{ocaml}
+      val reduce : key * inter list -> output Deferred.t
+      \end{ocaml}
+\end{itemize}
+
+The advantage of this design is that each call to \code{map} or \code{reduce}
+is independent, so the work can be distributed across a large number of
+machines.  This allows MapReduce applications to process very large data sets
+quickly while using limited resources on each individual machine.
+
+\subsection*{An example: Word Count}
+
+Figure~\ref{fig:wordcount} shows a distributed execution of a word counting
+application.  The input to the application is a list of filenames.  During the
+map phase, the controller sends a \code{MapRequest} message for each input
+filename to a mapper.  The mapper invokes the \code{map} function in the
+\code{WordCount.Job} module, which reads in the corresponding file and produces
+a list of \code{(word, count)} pairs.  The mapper then sends these pairs back to
+the controller.
+
+Once the controller has collected all of the intermediate \code{(word,count)}
+pairs, it groups all of the pairs having the same word into a single list, and
+sends a \code{ReduceRequest} to a reducer.  The reducer invokes the
+\code{reduce} function of the \code{WordCount.Job} module, which simply returns
+the sum of all of the counts.  The reducer sends this output back to the
+controller, which collects all of the reduced outputs and returns them to the
+\code{WordCount} application.
+
+\begin{figure}
+\begin{center}
+\begin{tikzpicture}[
+  worker/.style = {draw,rounded corners},
+  controller/.style = {draw},
+]
+\node [controller] (c1) at (0,8) {Controller};
+\matrix[column sep=1em, matrix of math nodes, nodes={worker}]
+  (mappers) at (0,4)
+{
+  M_1 & M_2 & |[draw=none]| \cdots & M_3 & M_4 \\
+};
+\node [controller] (c2) at (0,0)  {Controller};
+\matrix[column sep=1em, matrix of math nodes, nodes={worker}]
+  (reducers) at (0,-4)
+{
+  R_1 & R_2 & |[draw=none]| \cdots & R_3 & R_4 \\
+};
+\node [controller] (c3) at (0,-8)  {Controller};
+
+\foreach \i in {1,2,4,5} {
+  \draw[->] (c1) .. controls +(0,-1) and +(0,1) .. (mappers-1-\i);
+  \draw[->] (mappers-1-\i) .. controls +(0,-1) and +(0,1) .. (c2);
+  \draw[->] (c2) .. controls +(0,-1) and +(0,1) .. (reducers-1-\i);
+  \draw[->] (reducers-1-\i) .. controls +(0,-1) and +(0,1) .. (c3);
+}
+
+%     badger badger badger badger     badger badger badger badger
+%     badger badger badger badger     mushroom mushroom!
+%     badger badger badger badger     badger badger badger badger
+%     badger badger badger badger     mushroom mushroom!
+%     snaaake snaaake, oh, it's a snaaake!
+\node at (0,9) {\begin{minipage}{5in}
+\begin{ocaml}
+RemoteController(WordCount.Job).map_reduce
+  ["mushroom soup"; "badger badger $\cdots$"; $\cdots$];;
+\end{ocaml}
+\end{minipage}
+};
+
+\node at (0,-9.5) {\begin{minipage}{5in}
+\begin{ocaml}
+return [("mushroom",3); ("badger",12);
+        ("soup",1);     ("snake!",7); $\cdots$]
+\end{ocaml}
+\end{minipage}
+};
+
+\node [anchor=south east] at (-2,5.5) {\begin{minipage}{1.8in}
+\begin{ocaml}
+MapRequest
+  "mushroom soup"
+\end{ocaml}
+\end{minipage}
+};
+
+\node [anchor=north east] at (-2,2.5) {\begin{minipage}{1.8in}
+\begin{ocaml}
+MapResult [
+  ("mushroom",1);
+  ("soup",1)
+]
+\end{ocaml}
+\end{minipage}
+};
+
+\node [anchor=south west] at (2,5.5) {\begin{minipage}{1.8in}
+\begin{ocaml}
+MapRequest
+  "badger badger $\cdots$"
+\end{ocaml}
+\end{minipage}};
+
+\node [anchor=north west] at (2,2.5) {\begin{minipage}{1.8in}
+\begin{ocaml}
+MapResult [
+  ("badger", 12);
+  ("mushroom", 2);
+  ("snake!", 3);
+]
+\end{ocaml}
+\end{minipage}};
+
+\node [anchor=south east] at (-2,-2.5) {\begin{minipage}{1.8in}
+\begin{ocaml}
+ReduceRequest
+  ("badger",[12])
+\end{ocaml}
+\end{minipage}
+};
+
+\node [anchor=south west] at (2,-2.5) {\begin{minipage}{1.8in}
+\begin{ocaml}
+ReduceRequest
+  ("mushroom",[1;2])
+\end{ocaml}
+\end{minipage}
+};
+
+
+
+\node [anchor=north east] at (-2,-5.5) {\begin{minipage}{1.8in}
+\begin{ocaml}
+ReduceResult 12
+\end{ocaml}
+\end{minipage}
+};
+
+\node [anchor=north west] at (2,-5.5) {\begin{minipage}{1.8in}
+\begin{ocaml}
+ReduceResult 3
+\end{ocaml}
+\end{minipage}
+};
+
+\draw [decorate,decoration={brace,amplitude=1em}] (7,8) -- node[sloped,above=1em] {map phase} (7,0);
+\draw [decorate,decoration={brace,amplitude=1em}] (7,-.1) -- node[sloped,above=1em] {reduce phase} (7,-8);
+
+\end{tikzpicture}
+\end{center}
+\caption{Execution of a WordCount MapReduce job}
+\label{fig:wordcount}
+\end{figure}
+
+\subsection*{Communication protocol}
+
+In our implementation of MapReduce, the Controller communicates with Workers
+by sending and receiving the messsages defined in the \code{Protocol} module.
+
+Messages are strongly typed; a message from the Controller to the Worker will
+have type \code{WorkerRequest.t}; responses have the type
+\code{WorkerResponse.t}.  Messages can be sent and received by using the
+\code{send} and \code{receive} functions of the corresponding module.  For
+example, the Controller should call \code{WorkerRequest.send} to send a request
+to a worker; the worker will call \code{WorkerRequest.receive} to receive it.
+
+The \code{WorkerRequest} and \code{WorkerResponse} modules are parameterized on
+the \code{Job}, so that the messages can contain data of the types defined by
+the \code{Job}.  This means that before the worker can call \code{receive}, it
+needs to know which \code{Job} it is running.  As soon as the controller
+establishes a connection to a worker, it should send a single line containing
+the name of the job.  After the job name is sent, the controller should only
+send \code{WorkerRequest.t}s and receive \code{WorkerResponse.t}s.
+
+We have provided code in the \code{Worker} module's \code{init} function that
+receives the job name and calls \code{Worker.Make} with the corresponding
+module.
+
+Once a connection is established and the job name is sent, the Controller will
+send some number of \code{WorkerRequest.MapRequest} and
+\code{WorkerRequest.ReduceRequest} messages to the worker.  The worker will
+process these messages and send \code{WorkerRequest.MapResult} and
+\code{WorkerRequest.ReduceResult} messages respectively.  When the job is
+complete, the controller should close the connection.
+
+\subsection*{Error handling}
+
+There are a variety of errors that you will have to consider.
+\begin{description}
+\item[infrastructure failure]
+If the controller is unable to connect to a worker, or if a connection is broken
+while it is in use, or if the worker misbehaves by sending an inappropriate
+message, the controller should simply close the connection to the worker and
+continue processing the job using the remaining workers.
+
+If all of the workers die, the \code{map_reduce} function should raise an
+\code{InfrastructureFailure} exception.
+
+If a worker encounters an error when communicating with the controller, it
+should simply close the connection.
+
+\item[application failure]
+If the application raises an exception while executing the \code{map} or
+\code{reduce} functions, then the worker should return a \code{JobFailed}
+message.  Upon receiving this message, the controller should cause
+\code{map_reduce} to raise a \code{MapFailed} or \code{ReduceFailed} exception.
+
+The name and stack trace of the original exception can be found using the
+\code{Printexc} module from the OCaml standard library; these should be returned
+to the controller in the \code{JobFailed} message, and used to construct the
+\code{MapFailed} exception.
+
+\end{description}
+
+\exercise{Implement RemoteController}
+
+Implement the \code{RemoteController} module.  The \code{init} function should
+simply record the provided list of addresses for future invocations of
+\code{Make.run}.
+
+The \code{Make.map_reduce} function is responsible for executing the MapReduce
+job.  It should use \code{Tcp.connect} to connect to each of the workers that
+were provided during \code{init}.  It should then follow the protocol described
+above to complete the given \code{Job}.
+
+You can use the controller to run a given app by running the
+\filename{controllerMain.ml}:
+\begin{ocaml}
+% cs3110 compile controllerMain.ml
+% cs3110 run controllerMain.ml <app_name> <app_args>
+\end{ocaml}
+
+\exercise{Implement Worker}
+
+Implement the \code{Worker.Make} module in the \filename{map\_reduce}
+directory.  The \code{Make.run} function should receive messages on the
+provided \code{Reader.t} and respond to them on the provided \code{Writer.t}
+according to the protocol described above.
+
+You can run the worker on a given port by invoking \filename{workerMain.ml}:
+\begin{ocaml}
+% cs3110 compile workerMain.ml
+% cs3110 run workerMain.ml 31100
+\end{ocaml}
+
+The list of addresses and ports that the controller will try to connect to is
+given in the file \filename{addresses.txt}.
+
+\exercise{[Karma] handle slow workers}
+
+It is possible that some workers may simply be slow.  As an optional Karma
+problem, you may detect whether a worker is taking more than a few seconds to
+process a job, and add a second worker to process the same job if it is.  If
+both workers are taking too long, you can add a third worker, and so on.
+
+The old workers should not be terminated; the first of these workers to respond
+should determine the output of the job.  You may find \code{Ivar}s useful for
+this task.
+
+\newpage{}
+\part{MapReduce Applications}
+
+In this part of the assignment you will implement various MapReduce
+applications.
+
+A MapReduce application implements the \code{MapReduce.App} interface, which
+provides a \code{main} function.  This function will typically read some input,
+and then invoke the provided controller with one or more \code{Job}s.
+We have provided you with the \code{WordCount} example application described
+above to get you started.
+
+We have also provided you with a local controller that you can use to test your
+apps without a completed implementation of the MapReduce framework.  To run an
+app locally, simply pass the \filename{-local} option to
+\filename{controllerMain.ml}.  You should be able to run \code{WordCount} out
+of the box:
+\begin{ocaml}
+% cs3110 compile controllerMain.ml
+% cs3110 run controllerMain.ml -local wc ../writeup/ps5b.tex
+\end{ocaml}
+
+\exercise{Inverted Index}
+
+An inverted index is a mapping from words to the documents in which they
+appear.  Complete the \code{InvertedIndex} module (in \filename{apps/index})
+that takes in a master list of files, and computes an index on those files.
+
+For example, if the files \filename{master.txt}, \filename{zar.txt} and
+\filename{doz.txt} contained the following:
+
+\begin{center}
+\begin{tikzpicture}
+\node (master) {\begin{minipage}{1in}
+\begin{ocaml}
+zar.txt
+doz.txt
+\end{ocaml}
+\end{minipage}};
+\node[anchor=base west] at (master.north west) {\filename{master.txt}};
+
+\node[right=1cm of master] (zar) {\begin{minipage}{2.1in}
+\begin{ocaml}
+ocaml is fun
+fun fun fun
+\end{ocaml}
+\end{minipage}
+};
+\node[anchor=base west] at (zar.north west) {\filename{zar.txt}};
+
+\node[right=1cm of zar] (doz) {\begin{minipage}{2.1in}
+\begin{ocaml}
+because fun
+is a keyword
+\end{ocaml}
+\end{minipage}
+};
+\node[anchor=base west] at (doz.north west) {\filename{doz.txt}};
+\end{tikzpicture}
+\end{center}
+
+then running the \filename{index} app on \filename{master.txt} should produce
+the output
+\begin{ocaml}
+[("ocaml", ["zar.txt"]);            ("is", ["zar.txt"; "doz.txt"]);
+ ("fun",   ["zar.txt"; "doz.txt"]); ("because", ["doz.txt"]);
+ ("a",     ["doz.txt"]);            ("keyword", ["doz.txt"])]
+\end{ocaml}
+
+\exercise{Genetic Sequence Alignment}
+
+The goal of this exercise is to identify which fragments of a DNA sequence
+appear within a longer reference sequence.  This is an important problem from
+the field of computational biology.
+
+A DNA sequence is a string made from the letters G, C, A and T.  The input to
+your application will be a single long sequence (called the ``reference'') and
+a collection of short sequences (called ``reads'').  Your goal is to identify
+subsequences of the reads that match some part of the reference.
+
+For example, if you are given the reference sequence
+\begin{ocaml}
+ref:  GATCTCTATGCAAAATACGTATTTGTACGTCCACCCTCGGAGTGGTG
+\end{ocaml}
+and one of the reads is
+\begin{ocaml}
+read: CGTATTTGTACATCCACCCTCGG
+\end{ocaml}
+your goal is to discover that they match well when lined up as follows:
+\begin{ocaml}
+match:                 ___________ ___________
+ref:  GATCTCTATGCAAAATACGTATTTGTACGTCCACCCTCGGAGTGGTG
+read:                  CGTATTTGTACATCCACCCTCGG
+\end{ocaml}
+
+This problem can be solved using two MapReduce jobs as follows. \begin{itemize}
+
+\item In the first map phase, the input reference and reads will be broken into
+10 character sequences (called ``10-mers,'' or more generally ``$k$-mers'').
+For example, the read \code{"AGCTAGCTCAGTACC"} would be mapped as follows:
+
+\begin{ocaml}
+read X: AGCTAGCTCAGTACC
+output: AGCTAGCTCA       occurs in read X at offset 0
+         GCTAGCTCAG      occurs in read X at offset 1
+          CTAGCTCAGT     occurs in read X at offset 2
+           TAGCTCAGTA    occurs in read X at offset 3
+            AGCTCAGTAC   occurs in read X at offset 4
+             GCTCAGTACC  occurs in read X at offset 5
+\end{ocaml}
+
+The mapper will output the $k$-mers as keys, and identifying information (such
+as the source sequence and offset) as values.
+
+\item The first reduce phase collects all of the occurrences of the given
+$k$-mer, and outputs a list of all possible matches between a sequence and a
+read.
+
+\item The second map phase will take the $k$-mer matches as input and will
+output them with keys given by the identities of the reference and read to which
+they correspond.
+
+\item The final reduce phase will combine adjacent shared $k$-mers.  For
+example, if the $10$-mers at offsets $5$, $6$, and $7$ of a read $r$ match the
+reference at offsets $17$, $18$, and $19$, then we know that the subsequence of
+$r$ of length $12$ starting at offset $5$ matches the reference at offset $15$.
+\end{itemize}
+
+At the end of these two phases, the output will be a list of partial matches
+between reads and references.
+
+We have provided you with starter code to load files containing the data.  You
+must implement the \code{DnaSequencing.App.run} function which takes a list of
+reads and references and outputs a list of matches between them.
+
+\newpage{}
+\section*{Getting started}
+
+To help you get oriented, here is a brief summary of the files in the release:
+\begin{itemize}
+\item The \filename{map\_reduce} folder contains all of the infrastructure code \begin{itemize}
+    \item The \code{MapReduce} module defines the interface between the apps
+          and the infrastructure.
+    \item \code{RemoteController} and \code{Worker} are the modules that you
+          have to implement.
+    \item \code{LocalController} contains a working non-distributed
+          implementation of the \code{Controller} interface.  It makes
+          use of \code{Combiner} for the combine phase.
+    \end{itemize}
+\item The \filename{apps} folder contains the apps and the utilities that they
+      use.
+\item The \filename{async} folder contains the stubs for the async warmup
+      exercises in part~\ref{part:warmup}.
+\end{itemize}
+
+\section*{Comments}
+
+In addition to the usual comments, we are particularly interested in your
+feedback about using Async for this project.
+
+\section*{Karma suggestions}
+
+There are a lot of fun things you can do with MapReduce.  For example: \begin{itemize}
+\item There are a very large number of applications that can be implemented in
+      the MapReduce framework.  Find one that interests you and code it up!
+
+\item Brute force algorithms can work well when you have lots of brutes.  You
+      could adapt your solver from PS3 to run as a MapReduce app.
+
+\item You could think about how the software design would change if you wanted
+      to make the workers themselves concurrent (and write up a summary)
+
+\item You could also think about how to extend the design so that the mappers
+      communicate directly with the reducers to reduce the load on the
+      controller.
+\end{itemize}
+
+\end{document}

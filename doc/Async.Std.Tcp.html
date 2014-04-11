@@ -1,0 +1,48 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Async.Std.Socket.html">
+<link rel="Up" href="Async.Std.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Async" rel="Chapter" href="Async.html">
+<link title="MapReduce" rel="Chapter" href="MapReduce.html">
+<link title="RemoteController" rel="Chapter" href="RemoteController.html">
+<link title="Worker" rel="Chapter" href="Worker.html">
+<link title="Protocol" rel="Chapter" href="Protocol.html">
+<link title="LocalController" rel="Chapter" href="LocalController.html">
+<link title="Combiner" rel="Chapter" href="Combiner.html">
+<link title="AQueue" rel="Chapter" href="AQueue.html"><title>Async.Std.Tcp</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Async.Std.Socket.html" title="Async.Std.Socket">Previous</a>
+&nbsp;<a class="up" href="Async.Std.html" title="Async.Std">Up</a>
+&nbsp;</div>
+<h1>Module <a href="type_Async.Std.Tcp.html">Async.Std.Tcp</a></h1>
+
+<pre><span class="keyword">module</span> Tcp: <code class="code">sig</code> <a href="Async.Std.Tcp.html">..</a> <code class="code">end</code></pre><div class="info module top">
+Functions for connecting to remote hosts over the network.<br>
+</div>
+<hr width="100%">
+
+<pre><span id="TYPEwhere_to_connect"><span class="keyword">type</span> <code class="type">'a</code> where_to_connect</span> </pre>
+<div class="info ">
+Represents an address that can be connected to.<br>
+</div>
+
+
+<pre><span id="VALto_host_and_port"><span class="keyword">val</span> to_host_and_port</span> : <code class="type">string -> int -> <a href="Async.Std.Socket.Address.html#TYPEt">Socket.Address.t</a> <a href="Async.Std.Tcp.html#TYPEwhere_to_connect">where_to_connect</a></code></pre><div class="info ">
+Interprets a string and int as a network host and port that can be
+      connected to.<br>
+</div>
+
+<pre><span id="VALconnect"><span class="keyword">val</span> connect</span> : <code class="type">'a <a href="Async.Std.Tcp.html#TYPEwhere_to_connect">where_to_connect</a> -><br>       ('a <a href="Async.Std.Socket.html#TYPEt">Socket.t</a> * <a href="Async.Std.Reader.html#TYPEt">Reader.t</a> * <a href="Async.Std.Writer.html#TYPEt">Writer.t</a>)<br>       <a href="Async.Std.Deferred.html#TYPEt">Deferred.t</a></code></pre><div class="info ">
+Create a connection to the given address.  Returns a <code class="code">Reader.t</code> and a
+      <code class="code">Writer.t</code> that can be used to communicate with the remote endpoint.<br>
+</div>
+</body></html>
