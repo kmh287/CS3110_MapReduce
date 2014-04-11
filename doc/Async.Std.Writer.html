@@ -40,6 +40,7 @@ A <code class="code">Writer.t</code> is a handle to a file or network stream.<br
 
 
 <pre><span id="VALwrite_line"><span class="keyword">val</span> write_line</span> : <code class="type"><a href="Async.Std.Writer.html#TYPEt">t</a> -> string -> unit</code></pre><div class="info ">
-Writes a line of text to the given output stream.<br>
+Writes a line of text to the given output stream.  May raise an
+      exception if there is a network error.<br>
 </div>
 </body></html>

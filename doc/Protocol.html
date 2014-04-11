@@ -18,7 +18,7 @@
 <link title="Protocol" rel="Chapter" href="Protocol.html">
 <link title="LocalController" rel="Chapter" href="LocalController.html">
 <link title="Combiner" rel="Chapter" href="Combiner.html">
-<link title="AQueue" rel="Chapter" href="AQueue.html"><link title="Marshaling and unmarshaling" rel="Section" href="#2_Marshalingandunmarshaling">
+<link title="AQueue" rel="Chapter" href="AQueue.html"><link title="Sending and receiving messages" rel="Section" href="#2_Sendingandreceivingmessages">
 <link title="Mapper/Controller protocol" rel="Section" href="#2_MapperControllerprotocol">
 <title>Protocol</title>
 </head>
@@ -34,17 +34,11 @@ The messages sent between the worker and the controller.<br>
 </div>
 <hr width="100%">
 <br>
-<h2 id="2_Marshalingandunmarshaling">Marshaling and unmarshaling</h2><br>
+<h2 id="2_Sendingandreceivingmessages">Sending and receiving messages</h2><br>
 
 <pre><span class="keyword">module type</span> <a href="Protocol.Marshalable.html">Marshalable</a> = <code class="code">sig</code> <a href="Protocol.Marshalable.html">..</a> <code class="code">end</code></pre><div class="info">
 Send or receive marshaled messages through Reader or Writer
 </div>
-<br>
-Both the <a href="Protocol.WorkerRequest.html"><code class="code">Protocol.WorkerRequest</code></a> and <a href="Protocol.WorkerResponse.html"><code class="code">Protocol.WorkerResponse</code></a> modules below include the
-    <a href="Protocol.Marshalable.html"><code class="code">Protocol.Marshalable</code></a> interface, meaning that you can send and receive
-    <a href="Protocol.WorkerRequest.html#TYPEt"><code class="code">Protocol.WorkerRequest.t</code></a>s and <a href="Protocol.WorkerResponse.html#TYPEt"><code class="code">Protocol.WorkerResponse.t</code></a>s over the network.  For
-    example, to send a <code class="code">WorkerRequest.t</code> <code class="code">msg</code> over the channel <code class="code">w</code>, you should
-    call <code class="code">WorkerRequest.send w msg</code>.<br>
 <br>
 <h2 id="2_MapperControllerprotocol">Mapper/Controller protocol</h2><br>
 

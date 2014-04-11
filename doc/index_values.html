@@ -58,14 +58,20 @@ a deferred that becomes determined after the given amount of time
 </td></tr>
 <tr><td align="left"><br>C</td></tr>
 <tr><td><a href="Combiner.Make.html#VALcombine">combine</a> [<a href="Combiner.Make.html">Combiner.Make</a>]</td>
-<td></td></tr>
+<td><div class="info">
+Function for grouping output from the mappers by key
+</div>
+</td></tr>
 <tr><td><a href="Async.Std.Tcp.html#VALconnect">connect</a> [<a href="Async.Std.Tcp.html">Async.Std.Tcp</a>]</td>
 <td><div class="info">
 Create a connection to the given address.
 </div>
 </td></tr>
 <tr><td><a href="AQueue.html#VALcreate">create</a> [<a href="AQueue.html">AQueue</a>]</td>
-<td></td></tr>
+<td><div class="info">
+Create a new queue
+</div>
+</td></tr>
 <tr><td><a href="Async.Std.Pipe.html#VALcreate">create</a> [<a href="Async.Std.Pipe.html">Async.Std.Pipe</a>]</td>
 <td><div class="info">
 Creates a new pipe, and returns the reader and writer ends.
@@ -129,7 +135,7 @@ Start the worker server.
 </td></tr>
 <tr><td><a href="RemoteController.html#VALinit">init</a> [<a href="RemoteController.html">RemoteController</a>]</td>
 <td><div class="info">
-set up the map reduce controller to connect the the provided worker adresses
+set up the map reduce controller to connect the the provided worker addresses
 </div>
 </td></tr>
 <tr><td><a href="Async.Std.Ivar.html#VALis_empty">is_empty</a> [<a href="Async.Std.Ivar.html">Async.Std.Ivar</a>]</td>
@@ -157,7 +163,7 @@ the entry point of an app
 </td></tr>
 <tr><td><a href="MapReduce.Job.html#VALmap">map</a> [<a href="MapReduce.Job.html">MapReduce.Job</a>]</td>
 <td><div class="info">
-perform the map phase
+perform the map phase.
 </div>
 </td></tr>
 <tr><td><a href="Async.Std.Deferred.List.html#VALmap">map</a> [<a href="Async.Std.Deferred.List.html">Async.Std.Deferred.List</a>]</td>
@@ -185,7 +191,10 @@ a deferred that is never determined
 </td></tr>
 <tr><td align="left"><br>P</td></tr>
 <tr><td><a href="AQueue.html#VALpop">pop</a> [<a href="AQueue.html">AQueue</a>]</td>
-<td></td></tr>
+<td><div class="info">
+Wait until an element becomes available, and then return it.
+</div>
+</td></tr>
 <tr><td><a href="Async.Std.html#VALprintf">printf</a> [<a href="Async.Std.html">Async.Std</a>]</td>
 <td><div class="info">
 This function is an Async-friendly version of
@@ -194,7 +203,10 @@ This function is an Async-friendly version of
 </div>
 </td></tr>
 <tr><td><a href="AQueue.html#VALpush">push</a> [<a href="AQueue.html">AQueue</a>]</td>
-<td></td></tr>
+<td><div class="info">
+Add an element to the queue.
+</div>
+</td></tr>
 <tr><td align="left"><br>R</td></tr>
 <tr><td><a href="Async.Std.Pipe.html#VALread">read</a> [<a href="Async.Std.Pipe.html">Async.Std.Pipe</a>]</td>
 <td><div class="info">
@@ -212,10 +224,13 @@ reads a single line from the given input stream.
 </div>
 </td></tr>
 <tr><td><a href="Protocol.Marshalable.html#VALreceive">receive</a> [<a href="Protocol.Marshalable.html">Protocol.Marshalable</a>]</td>
-<td></td></tr>
+<td><div class="info">
+<code class="code">receive</code> and <code class="code">send</code> receive and send messages.
+</div>
+</td></tr>
 <tr><td><a href="MapReduce.Job.html#VALreduce">reduce</a> [<a href="MapReduce.Job.html">MapReduce.Job</a>]</td>
 <td><div class="info">
-perform the reduce phase
+perform the reduce phase.
 </div>
 </td></tr>
 <tr><td><a href="MapReduce.html#VALregister_app">register_app</a> [<a href="MapReduce.html">MapReduce</a>]</td>
@@ -230,12 +245,17 @@ perform the reduce phase
 </td></tr>
 <tr><td><a href="Worker.Make.html#VALrun">run</a> [<a href="Worker.Make.html">Worker.Make</a>]</td>
 <td><div class="info">
-Handle the requests for a single connection.
+Handle all of the requests for a single connection.
 </div>
 </td></tr>
 <tr><td align="left"><br>S</td></tr>
 <tr><td><a href="Protocol.Marshalable.html#VALsend">send</a> [<a href="Protocol.Marshalable.html">Protocol.Marshalable</a>]</td>
 <td></td></tr>
+<tr><td><a href="Async.Std.Socket.html#VALshutdown">shutdown</a> [<a href="Async.Std.Socket.html">Async.Std.Socket</a>]</td>
+<td><div class="info">
+Close one or both ends of a socket
+</div>
+</td></tr>
 <tr><td align="left"><br>T</td></tr>
 <tr><td><a href="Async.Std.Tcp.html#VALto_host_and_port">to_host_and_port</a> [<a href="Async.Std.Tcp.html">Async.Std.Tcp</a>]</td>
 <td><div class="info">
@@ -245,8 +265,8 @@ Interprets a string and int as a network host and port that can be
 </td></tr>
 <tr><td><a href="Async.Std.html#VALtry_with">try_with</a> [<a href="Async.Std.html">Async.Std</a>]</td>
 <td><div class="info">
-<code class="code">try_with f</code> runs the blocking function <code class="code">f</code>, and returns <code class="code">`Ok x</code> if <code class="code">f ()</code>
-    returns <code class="code">x</code>.
+<code class="code">try_with f</code> runs the blocking function <code class="code">f</code>, and returns <code class="code">Core.Std.Ok x</code> if
+    <code class="code">f ()</code> returns <code class="code">x</code>.
 </div>
 </td></tr>
 <tr><td align="left"><br>W</td></tr>

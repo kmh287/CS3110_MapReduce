@@ -47,8 +47,8 @@ let read_files filenames : sequence list Deferred.t =
 (** Print out a single match *)
 let print_result result =
   printf "read %i [%i-%i] matches reference %i [%i-%i]\n"
-         result.read result.read_off (result.read_off + result.length)
-         result.ref  result.ref_off  (result.ref_off  + result.length)
+         result.read result.read_off (result.read_off + result.length - 1)
+         result.ref  result.ref_off  (result.ref_off  + result.length - 1)
 
 (** Write out the output data *)
 let print_results results : unit =
@@ -59,7 +59,7 @@ let print_results results : unit =
 (******************************************************************************)
 
 module Job1 = struct
-  type input = unit
+  type input
   type key
   type inter
   type output

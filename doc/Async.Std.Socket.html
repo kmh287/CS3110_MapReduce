@@ -29,12 +29,15 @@
 
 <pre><span class="keyword">module</span> Socket: <code class="code">sig</code> <a href="Async.Std.Socket.html">..</a> <code class="code">end</code></pre><div class="info module top">
 The socket module contains types necessary for working with the <code class="code">Tcp</code>
-    module; You do not need to use it directly - it is only here for
-    completeness.<br>
+    module.<br>
 </div>
 <hr width="100%">
 
 <pre><span id="TYPEt"><span class="keyword">type</span> <code class="type">'a</code> t</span> </pre>
 
+
+<pre><span id="VALshutdown"><span class="keyword">val</span> shutdown</span> : <code class="type">'a <a href="Async.Std.Socket.html#TYPEt">t</a> -> [ `Both | `Receive | `Send ] -> unit</code></pre><div class="info ">
+Close one or both ends of a socket<br>
+</div>
 
 <pre><span class="keyword">module</span> <a href="Async.Std.Socket.Address.html">Address</a>: <code class="code">sig</code> <a href="Async.Std.Socket.Address.html">..</a> <code class="code">end</code></pre></body></html>

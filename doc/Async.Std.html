@@ -216,8 +216,7 @@ The Writer module (not to be confused with <a href="Async.Std.Pipe.Writer.html">
 
 <pre><span class="keyword">module</span> <a href="Async.Std.Socket.html">Socket</a>: <code class="code">sig</code> <a href="Async.Std.Socket.html">..</a> <code class="code">end</code></pre><div class="info">
 The socket module contains types necessary for working with the <code class="code">Tcp</code>
-    module; You do not need to use it directly - it is only here for
-    completeness.
+    module.
 </div>
 
 <pre><span class="keyword">module</span> <a href="Async.Std.Tcp.html">Tcp</a>: <code class="code">sig</code> <a href="Async.Std.Tcp.html">..</a> <code class="code">end</code></pre><div class="info">
@@ -226,9 +225,9 @@ Functions for connecting to remote hosts over the network.
 <br>
 <h2 id="2_Errorhandling">Error handling</h2><br>
 
-<pre><span id="VALtry_with"><span class="keyword">val</span> try_with</span> : <code class="type">(unit -> 'a <a href="Async.Std.Deferred.html#TYPEt">Deferred.t</a>) -><br>       [ `Err of exn | `Ok of 'a ] <a href="Async.Std.Deferred.html#TYPEt">Deferred.t</a></code></pre><div class="info ">
-<code class="code">try_with f</code> runs the blocking function <code class="code">f</code>, and returns <code class="code">`Ok x</code> if <code class="code">f ()</code>
-    returns <code class="code">x</code>.  If <code class="code">f ()</code> raises the exception <code class="code">e</code>, then <code class="code">try_with f</code> returns
-    <code class="code">`Err e</code>.<br>
+<pre><span id="VALtry_with"><span class="keyword">val</span> try_with</span> : <code class="type">(unit -> 'a <a href="Async.Std.Deferred.html#TYPEt">Deferred.t</a>) -><br>       ('a, exn) Core.Std.Result.t <a href="Async.Std.Deferred.html#TYPEt">Deferred.t</a></code></pre><div class="info ">
+<code class="code">try_with f</code> runs the blocking function <code class="code">f</code>, and returns <code class="code">Core.Std.Ok x</code> if
+    <code class="code">f ()</code> returns <code class="code">x</code>.  If <code class="code">f ()</code> raises the exception <code class="code">e</code>, then <code class="code">try_with f</code>
+    returns <code class="code">Core.Std.Error e</code>.<br>
 </div>
 </body></html>

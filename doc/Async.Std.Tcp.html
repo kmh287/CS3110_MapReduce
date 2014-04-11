@@ -43,6 +43,12 @@ Interprets a string and int as a network host and port that can be
 
 <pre><span id="VALconnect"><span class="keyword">val</span> connect</span> : <code class="type">'a <a href="Async.Std.Tcp.html#TYPEwhere_to_connect">where_to_connect</a> -><br>       ('a <a href="Async.Std.Socket.html#TYPEt">Socket.t</a> * <a href="Async.Std.Reader.html#TYPEt">Reader.t</a> * <a href="Async.Std.Writer.html#TYPEt">Writer.t</a>)<br>       <a href="Async.Std.Deferred.html#TYPEt">Deferred.t</a></code></pre><div class="info ">
 Create a connection to the given address.  Returns a <code class="code">Reader.t</code> and a
-      <code class="code">Writer.t</code> that can be used to communicate with the remote endpoint.<br>
+      <code class="code">Writer.t</code> that can be used to communicate with the remote endpoint.
+<p>
+
+      Raises an exception if it cannot connect to the worker<br>
 </div>
+<br>
+Note: you can close the connection by calling <code class="code">Socket.shutdown `Both</code> on the
+      Socket<br>
 </body></html>

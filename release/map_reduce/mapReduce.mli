@@ -18,10 +18,12 @@ module type Job = sig
   (** a unique name for the job *)
   val name   : id
 
-  (** perform the map phase *)
+  (** perform the map phase.  May throw an exception, in which case the job as a
+      whole should fail.  *)
   val map    : input -> (key * inter) list Deferred.t
 
-  (** perform the reduce phase *)
+  (** perform the reduce phase.  May throw an exception, in which case the job
+      as a whole should fail. *)
   val reduce : (key * inter list) -> output Deferred.t
 end
 

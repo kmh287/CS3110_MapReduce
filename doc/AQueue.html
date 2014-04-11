@@ -31,8 +31,21 @@ Async exercise<br>
 <hr width="100%">
 
 <pre><span id="TYPEt"><span class="keyword">type</span> <code class="type">'a</code> t</span> </pre>
+<div class="info ">
+An asynchronous queue.  'a s can be pushed onto the queue; popping blocks
+    until the queue is non-empty and then returns an element.<br>
+</div>
 
 
-<pre><span id="VALcreate"><span class="keyword">val</span> create</span> : <code class="type">unit -> 'a <a href="AQueue.html#TYPEt">t</a></code></pre>
-<pre><span id="VALpush"><span class="keyword">val</span> push</span> : <code class="type">'a <a href="AQueue.html#TYPEt">t</a> -> 'a -> unit</code></pre>
-<pre><span id="VALpop"><span class="keyword">val</span> pop</span> : <code class="type">'a <a href="AQueue.html#TYPEt">t</a> -> 'a <a href="Async.Std.Deferred.html#TYPEt">Deferred.t</a></code></pre></body></html>
+<pre><span id="VALcreate"><span class="keyword">val</span> create</span> : <code class="type">unit -> 'a <a href="AQueue.html#TYPEt">t</a></code></pre><div class="info ">
+Create a new queue<br>
+</div>
+
+<pre><span id="VALpush"><span class="keyword">val</span> push</span> : <code class="type">'a <a href="AQueue.html#TYPEt">t</a> -> 'a -> unit</code></pre><div class="info ">
+Add an element to the queue.<br>
+</div>
+
+<pre><span id="VALpop"><span class="keyword">val</span> pop</span> : <code class="type">'a <a href="AQueue.html#TYPEt">t</a> -> 'a <a href="Async.Std.Deferred.html#TYPEt">Deferred.t</a></code></pre><div class="info ">
+Wait until an element becomes available, and then return it.<br>
+</div>
+</body></html>

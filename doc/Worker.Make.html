@@ -40,8 +40,13 @@
 <hr width="100%">
 
 <pre><span id="VALrun"><span class="keyword">val</span> run</span> : <code class="type"><a href="Async.Std.Reader.html#TYPEt">Reader.t</a> -> <a href="Async.Std.Writer.html#TYPEt">Writer.t</a> -> unit <a href="Async.Std.Deferred.html#TYPEt">Deferred.t</a></code></pre><div class="info ">
-Handle the requests for a single connection.  The Reader and Writer should
-      be used to send and receive messages of type WorkerResponse(Job) and
-      WorkerRequest(Job).<br>
+Handle all of the requests for a single connection.  The Reader and
+      Writer should be used to send and receive messages of type
+      WorkerResponse(Job) and WorkerRequest(Job).
+<p>
+
+      <code class="code">run</code> should return when all messages from the connection have been
+      processed.  When the Deferred returned by run is determined, the
+      connection will be closed.<br>
 </div>
 </body></html>

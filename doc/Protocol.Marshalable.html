@@ -29,7 +29,16 @@ Send or receive marshaled messages through Reader or Writer<br>
 <hr width="100%">
 
 <pre><span id="TYPEt"><span class="keyword">type</span> <code class="type"></code>t</span> </pre>
+<div class="info ">
+the type of a message<br>
+</div>
 
 
-<pre><span id="VALreceive"><span class="keyword">val</span> receive</span> : <code class="type"><a href="Async.Std.Reader.html#TYPEt">Reader.t</a> -><br>       [ `Eof | `Ok of <a href="Protocol.Marshalable.html#TYPEt">t</a> ] <a href="Async.Std.Deferred.html#TYPEt">Deferred.t</a></code></pre>
+<pre><span id="VALreceive"><span class="keyword">val</span> receive</span> : <code class="type"><a href="Async.Std.Reader.html#TYPEt">Reader.t</a> -><br>       [ `Eof | `Ok of <a href="Protocol.Marshalable.html#TYPEt">t</a> ] <a href="Async.Std.Deferred.html#TYPEt">Deferred.t</a></code></pre><div class="info ">
+<code class="code">receive</code> and <code class="code">send</code> receive and send messages.  They will raise
+      exceptions if the connection is broken or 
+      there was some kind of I/O failure (e.g. if the connection was
+      unexpectedly terminated).<br>
+</div>
+
 <pre><span id="VALsend"><span class="keyword">val</span> send</span> : <code class="type"><a href="Async.Std.Writer.html#TYPEt">Writer.t</a> -> <a href="Protocol.Marshalable.html#TYPEt">t</a> -> unit</code></pre></body></html>

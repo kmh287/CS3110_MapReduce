@@ -47,10 +47,12 @@ a unique name for the job<br>
 </div>
 
 <pre><span id="VALmap"><span class="keyword">val</span> map</span> : <code class="type"><a href="MapReduce.Job.html#TYPEinput">input</a> -><br>       (<a href="MapReduce.Job.html#TYPEkey">key</a> * <a href="MapReduce.Job.html#TYPEinter">inter</a>) list <a href="Async.Std.Deferred.html#TYPEt">Deferred.t</a></code></pre><div class="info ">
-perform the map phase<br>
+perform the map phase.  May throw an exception, in which case the job as a
+      whole should fail.<br>
 </div>
 
 <pre><span id="VALreduce"><span class="keyword">val</span> reduce</span> : <code class="type"><a href="MapReduce.Job.html#TYPEkey">key</a> * <a href="MapReduce.Job.html#TYPEinter">inter</a> list -><br>       <a href="MapReduce.Job.html#TYPEoutput">output</a> <a href="Async.Std.Deferred.html#TYPEt">Deferred.t</a></code></pre><div class="info ">
-perform the reduce phase<br>
+perform the reduce phase.  May throw an exception, in which case the job
+      as a whole should fail.<br>
 </div>
 </body></html>

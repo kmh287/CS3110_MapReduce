@@ -7,10 +7,13 @@
 \usetikzlibrary{decorations}
 \usetikzlibrary{decorations.pathreplacing}
 \usetikzlibrary{arrows}
+\usetikzlibrary{shapes.misc}
 
 \psnum{5b}
 \date{Due Thursday, April 17}
-\versionnumber{1}
+\versionnumber{2}
+
+\newcommand{\sout}[1]{\tikz[baseline] \node[anchor=text,shape=cross out,draw=red] {#1};}
 
 \begin{document}
 \maketitle{}
@@ -119,15 +122,30 @@ The output of the two blocking functions should be ignored.
 
 \exercise{}
 Using \emph{only} \code{(>>=)}, \code{return}, and the ordinary \code{List}
-module functions, implement a function with the same specification as
-\code{Deferred.List.map}:
+module functions, implement a function with the following specification:
 \begin{ocaml}
 val deferred_map : 'a list -> ('a -> 'b Deferred.t) -> 'b list Deferred.t
 \end{ocaml}
 This function should take a list \code{l} and a blocking function \code{f}, and
-should apply \code{f} in parallel to each element of \code{l}.  When all of the
-calls to \code{f} are complete, \code{deferred_map} should return a list
-containing all of their values.
+should apply \code{f} \emph{concurrently} to each element of \code{l}.  When
+all of the calls to \code{f} are complete, \code{deferred_map} should return a
+list containing all of their values.
+
+\begin{note}{Update (version 2)}
+\label{update:deferred_map}
+In fact, this is \emph{not} the same as the specification for Deferred.List.map
+(in fact the Jane Street documentation does not give a specification for
+\code{Deferred.List.map}).
+
+\code{Deferred.List.map [1;2] f} will not begin running \code{f 2} until the 
+Deferred returned by \code{f 1} is determined (informally, until \code{f 1}
+completes).  If you want use the function specified above for your
+implementation, either use your implementation of \code{deferred_map} or supply
+the optional argument \code{~how:`Parallel} to \code{Deferred.List.map}:
+\begin{ocaml}
+Deferred.List.map ~how:`Parallel [1;2] f
+\end{ocaml}
+\end{note}
 
 \exercise{}
 
@@ -410,6 +428,12 @@ process these messages and send \code{WorkerRequest.MapResult} and
 \code{WorkerRequest.ReduceResult} messages respectively.  When the job is
 complete, the controller should close the connection.
 
+\begin{note}{Update (version 2)}
+\label{update:shutdown}
+We have added the function \code{Async.Std.Socket.shutdown} to our
+documentation, which you can call to close the connection.
+\end{note}
+
 \subsection*{Error handling}
 
 There are a variety of errors that you will have to consider.
@@ -436,6 +460,14 @@ The name and stack trace of the original exception can be found using the
 \code{Printexc} module from the OCaml standard library; these should be returned
 to the controller in the \code{JobFailed} message, and used to construct the
 \code{MapFailed} exception.
+
+\begin{note}{Update (version 2)}
+\label{update:exceptions}
+We did not define the \code{InfrastructureFailure}, \code{MapFailed} or
+\code{ReduceFailed} exceptions in the release code.  Feel free to define them
+yourself or to raise any other exception (for example by calling
+\code{failwith}.
+\end{note}
 
 \end{description}
 
@@ -609,7 +641,10 @@ they correspond.
 \item The final reduce phase will combine adjacent shared $k$-mers.  For
 example, if the $10$-mers at offsets $5$, $6$, and $7$ of a read $r$ match the
 reference at offsets $17$, $18$, and $19$, then we know that the subsequence of
-$r$ of length $12$ starting at offset $5$ matches the reference at offset $15$.
+$r$ of length $12$ starting at offset $5$ matches the reference at offset
+\sout{$15$} $17$.
+
+\label{update:dna}
 \end{itemize}
 
 At the end of these two phases, the output will be a list of partial matches

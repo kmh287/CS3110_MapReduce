@@ -20,8 +20,8 @@ let init port =
           | None -> return ()
           | Some j ->
             let module Job = (val j) in
-            let module Mapper = Make(Job) in
-            Mapper.run r w
+            let module Worker = Make(Job) in
+            Worker.run r w
     )
     >>= fun _ ->
   print_endline "server started";

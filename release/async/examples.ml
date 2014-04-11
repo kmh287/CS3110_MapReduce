@@ -16,7 +16,7 @@ let job name time () =
   return name
 
 
-(** Run deferred_map *)
+(* Run deferred_map *)
 let deferred_map_example () =
   print_endline "running deferred_map example";
   print_endline "expected output (after 30 seconds):";
@@ -42,7 +42,7 @@ let deferred_map_example () =
   List.iter print_endline outputs;
   return ()
 
-(** Run the examples *)
+(* Run the examples *)
 let _ = deferred_map_example ()
 
 (** Start the async scheduler *)

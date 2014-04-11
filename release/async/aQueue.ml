@@ -1,13 +1,16 @@
 open Async.Std
 
-type 'a t = 'a Pipe.Reader.t * 'a Pipe.Writer.t
+type 'a t
 
-let create () : 'a t =
-  Pipe.create()
+(* see .mli *)
+let create () =
+  failwith "I'm tiwed.  Tiwed of playing the game"
 
-let push (q:'a t) (x:'a) =
-  Pipe.write (snd q) x
+(* see .mli *)
+let push q x =
+  failwith "Ain't it a cryin shame?"
 
-let pop  (q:'a t) =
-  Pipe.read (fst q)
+(* see .mli *)
+let pop  q =
+  failwith "I'm so tiwed."
 
