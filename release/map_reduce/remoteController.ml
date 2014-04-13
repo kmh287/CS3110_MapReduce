@@ -1,7 +1,9 @@
 open Async.Std
 
+let workerList =  Hashtbl.create 8
+
 let init addrs =
-  failwith "Where you headed, cowboy?"
+  List.iter (fun addr -> (Hashtbl.add) workerList (fst addr) (snd addr)) addrs
 
 module Make (Job : MapReduce.Job) = struct
   let map_reduce inputs =
