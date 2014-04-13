@@ -1,11 +1,9 @@
 open Async.Std
 
-let workerList =  Hashtbl.create 8
+let workerList =  ref []
 
 let init addrs =
-  List.iter 
-    (fun addr -> (Hashtbl.add) workerList (fst addr) (ref (snd addr))) 
-    addrs
+  List.iter (fun addr -> workerList := (addr::(!workerList))) addrs
 
 module Make (Job : MapReduce.Job) = struct
   let map_reduce inputs =
