@@ -29,6 +29,7 @@ module Job = struct
       String.sub string 0 (String.length string -1 ) else string  
 
   (*Turn a string into a list of words in the string*) 
+(*
   let rec separate acc s = 
     if s = "" then acc else
       let trimmeds = String.trim s in (*Remove leading and trailing whitespace*)
@@ -39,12 +40,12 @@ module Job = struct
         else String.sub s 0 (indexOfSpace) in
       let afterSpace = String.sub s (indexOfSpace+1) (length - indexOfSpace -1) in 
       separate ((removePunct beforeSpace)::acc) afterSpace 
-
+*)
 
   let map input : (key * inter) list Deferred.t =
     let fileName = input in
     Reader.file_contents input
-    >>= fun contents -> return (separate [] contents)
+    >>= fun contents -> return (AppUtils.split_words contents)
     >>= fun wordList -> return (List.fold_left (fun acc ele -> WS.add ele acc) WS.empty wordList)
     >>= fun wordSet ->  return (List.map (fun x -> (x,fileName)) (WS.elements wordSet) )
     
