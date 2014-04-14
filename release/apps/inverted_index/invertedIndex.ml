@@ -11,33 +11,46 @@ module Job = struct
   type input = filename
   type key = string (*A particular word*)
   type inter = filename 
-  type output = string * string list
+  type output = string list
 
   let name = "index.job"
   
   module WS = Set.Make(String) 
 
+  let acceptableChars = ['A';'a';'B';'b';'C';'c';'D';'d';'E';'e';'F';'f';'G';
+                         'g';'H';'h';'I';'i';'J';'j';'K';'k';'L';'l';'M';'m';
+                         'N';'n';'O';'o';'P';'p';'Q';'q';'R';'r';'S';'s';'T';
+                         't';'U';'u';'V';'v';'W';'w';'X';'x';'Y';'y';'Z';'z';] 
+
+  let removePunct string  =
+    let removePunctHelper char = 
+      if List.mem char acceptableChars then char else '`' in 
+    if (String.map removePunctHelper string).[String.length string -1] = '`' then 
+      String.sub string 0 (String.length string -1 ) else string  
+
   (*Turn a string into a list of words in the string*) 
-   let rec separate acc s = 
-    if s = "" then acc else 
+  let rec separate acc s = 
+    if s = "" then acc else
       let trimmeds = String.trim s in (*Remove leading and trailing whitespace*)
       let length = String.length trimmeds in 
       let indexOfSpace =  try String.index trimmeds ' '
                           with Not_found -> length-1 in
-      let beforeSpace = if indexOfSpace = length -1 then String.sub s 0 (indexOfSpace+1)
-                                                    else String.sub s 0 (indexOfSpace) in 
+      let beforeSpace = if indexOfSpace = (length -1) then String.sub s 0 (indexOfSpace+1)
+        else String.sub s 0 (indexOfSpace) in
       let afterSpace = String.sub s (indexOfSpace+1) (length - indexOfSpace -1) in 
-      separate (beforeSpace::acc) afterSpace ;;
+      separate ((removePunct beforeSpace)::acc) afterSpace 
+
 
   let map input : (key * inter) list Deferred.t =
-    let fileName = input in 
-    let wordList = separate [] (Reader.file_contents input) in
-    let wordSet = List.fold_left (fun acc ele -> acc.add ele) WS.empty wordList in 
-    return  (List.map (wordSet.elements) (fun x -> (x,fileName)) )
+    let fileName = input in
+    Reader.file_contents input
+    >>= fun contents -> return (separate [] contents)
+    >>= fun wordList -> return (List.fold_left (fun acc ele -> WS.add ele acc) WS.empty wordList)
+    >>= fun wordSet ->  return (List.map (fun x -> (x,fileName)) (WS.elements wordSet) )
     
 
   let reduce (key, inters) : output Deferred.t =
-    inters 
+    return (inters)  
 end
 
 (* register the job *)
@@ -81,7 +94,7 @@ module App  = struct
     let main args = 
       if args = [] then failwith "No file provided" 
       else if List.length args > 1 then failwith "Applied to too many arguments"
-      else Reader.read_lines args
+      else Reader.file_lines (List.hd args)
         >>= MR.map_reduce
         >>|output  
       
