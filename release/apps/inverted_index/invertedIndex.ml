@@ -93,12 +93,15 @@ module App  = struct
     (** The input should be a single file name.  The named file should contain
         a list of files to index. *)
     let main args = 
-      if args = [] then failwith "No file provided" 
-      else if List.length args > 1 then failwith "Applied to too many arguments"
-      else Reader.file_lines (List.hd args)
-        >>= MR.map_reduce
-        >>|output  
-      
+      if args = [] 
+        then failwith "No file provided" 
+        else 
+          if List.length args > 1 
+            then failwith "Applied to too many arguments"
+            else Reader.file_lines (List.hd args)
+            >>= MR.map_reduce
+            >>|output  
+        
   end
 end
 
