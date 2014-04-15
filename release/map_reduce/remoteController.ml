@@ -26,7 +26,7 @@ module Make (Job : MapReduce.Job) = struct
   let connect addr = 
     Tcp.connect (Tcp.to_host_and_port (fst(addr)) (snd(addr)))
 
-  let init (socket,reader,writer) = 
+  let init_connect (socket,reader,writer) = 
       (try_with (fun () -> return (Writer.write_line writer Job.name)) )
         >>= (function
         | Core.Std.Error e -> failwith "init write fail"
@@ -35,19 +35,27 @@ module Make (Job : MapReduce.Job) = struct
           Reader.read_line reader 
           >>= (fun res -> 
             match res with
-            | `Eof -> failwith "init connection closed"
+            | `Eof -> 
+                print_endline "init connection closed";
+                return None
             | `Ok(x) -> 
               print_endline "init success";
-              return (socket, reader, writer) ) 
+              return (Some (socket, reader, writer) ))
   
   let setup_connection () =
     Deferred.List.iter  (!workerList)
       (fun addr ->
-        (try_with (fun () -> connect addr) >>= function
+        (try_with (fun () -> connect addr) 
+          >>= function
           | Core.Std.Error e -> return ()
-          | Core.Std.Ok x -> 
-              connections := [(init x)]@(!connections); 
-              return () )
+          | Core.Std.Ok x -> init_connect x
+          >>= fun con ->
+            (match con with
+            | None -> return ();
+            | Some c -> 
+                connections := [c]@(!connections); 
+                return () )
+        ) 
       )
 
   let (@) xs ys = List.rev_append (List.rev xs) ys
@@ -177,9 +185,10 @@ module Make (Job : MapReduce.Job) = struct
 (*   let map_reduce inputs = 
     setup_connection () 
     >>| fun x -> assign_job_id inputs
-    >>=  
+    >>= Deferred.List.Map connections *)
 
- *)
+
+
 
 end
 
