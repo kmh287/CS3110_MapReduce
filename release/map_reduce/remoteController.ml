@@ -16,9 +16,7 @@ module Make (Job : MapReduce.Job) = struct
   let map_todo    = ref []
   let reduce_todo = ref []
 
-  let map_doing        =    Hashtbl.create 1000
   let map_results      =    Hashtbl.create 1000
-  let reduce_doing     =    Hashtbl.create 1000
   let reduce_results   =    Hashtbl.create 1000
 
   let init addrs =
@@ -60,42 +58,48 @@ module Make (Job : MapReduce.Job) = struct
       )
 
   let (@) xs ys = List.rev_append (List.rev xs) ys
-
-  let maptbl_values_to_list () = 
-    List.flatten 
-      (Hashtbl.fold (fun key value acc -> acc @ [value]) map_results [])
-
-  let reducetbl_values_to_list () = 
-    Hashtbl.fold (fun key value acc -> acc @ [value]) reduce_results []
-
-  let get_job job_list = 
-    match (!job_list) with
+  
+  (* get a unfinished job from the todo list, and remove it from the list *)
+  let get_job todo_list = 
+    match (!todo_list) with
     | [] -> None
     | job :: tl -> 
         begin
-          job_list := tl;
+          todo_list := tl;
           Some job
         end
-  
+
+  (* insert a (id, job) into a todo list *)
+  let insert_job todo_list id_job = 
+    todo_list := [id_job] @ (!todo_list) 
+
+  (* function that called in map or reduce, send request to worker and add
+  the result into the result table.*)
   let compute request reader writer id =
     (try_with 
       (fun () -> return (WRequest.send writer request)) 
       >>= function
-        | Core.Std.Error e -> failwith "map write fail"
+        | Core.Std.Error e -> (
+          print_endline "map write fail";
+          failwith "map write fail")
         | Core.Std.Ok x -> return x  )
     >>= fun x ->
       (WResponse.receive reader)
     >>= (fun res -> 
           (match res with
-            | `Eof -> failwith "map connection closed"
+            | `Eof -> (
+              print_endline "map connection closed";
+              failwith "map connection closed")
             | `Ok x -> return x )
         )
     >>= (fun result -> 
       match result with 
+      (* if the result is none, probably should add the job 
+      back to the job list *)
       | None -> 
         begin
           print_endline "none result";
-          return (); 
+          failwith "none result";
         end
       | Some WResponse.MapResult(lst)  ->
         begin
@@ -103,15 +107,11 @@ module Make (Job : MapReduce.Job) = struct
           if (not (Hashtbl.mem map_results id)) 
           then
             begin
-              Hashtbl.remove map_doing id;
               Hashtbl.add map_results id lst;  
               return ();
             end
           else
-            begin
-              Hashtbl.remove map_doing id;
-              return ();
-            end
+            return ();
         end
       | Some WResponse.ReduceResult(output) ->
         begin
@@ -119,32 +119,44 @@ module Make (Job : MapReduce.Job) = struct
           if (not (Hashtbl.mem reduce_results id)) 
           then
             begin
-              Hashtbl.remove reduce_doing id;
-              Hashtbl.add reduce_results id output;  
-              return ();
+              (match request with
+              | WRequest.ReduceRequest(key, iters) ->
+                  return ((Hashtbl.add reduce_results id (key, output)))
+              | _ -> 
+                return (print_endline 
+                    "invalid reqest when receive reduce response") )
             end
           else
-            begin
-              Hashtbl.remove reduce_doing id;
-              return ();
-            end
+            return ()
         end
-      | _ -> failwith "invalid response"
+      | _ -> (
+        print_endline "invalid response";
+        failwith "invalid response")
     )
 
-  (* wrap with a map request, wait for response, and 
-    return () when finishes  *)
+  (* wrap with a map request, wait for response, and return () 
+  when finishes. If the worker fails, add the job to todo list again *)
   let map reader writer id_input = 
     let (id, input) = id_input in 
     let request = WRequest.MapRequest(input) in
-    compute request reader writer id 
+    (try_with 
+      (fun () -> return (compute request reader writer id)) 
+      >>= (function
+        | Core.Std.Error e -> return (insert_job map_todo id_input)
+        | Core.Std.Ok x -> x )
+    )
 
-  (* wrap with a reduce request, wait for response, and 
-  return () when finishes *)
+  (* wrap with a reduce request, wait for response, and return () 
+  when finishes. If the worker fails, add the job to todo list again *)
   let reduce reader writer id_kis =
     let (id, (key, inters)) = id_kis in 
     let request = WRequest.ReduceRequest(key, inters) in
-    compute request reader writer id
+    (try_with 
+      (fun () -> return (compute request reader writer id)) 
+      >>= (function
+        | Core.Std.Error e -> return (insert_job reduce_todo id_kis)
+        | Core.Std.Ok x -> x )
+    )
     
   (* initialize every job with a unique id, return a (id, job) list *)
   let assign_job_id jobs = 
@@ -152,7 +164,7 @@ module Make (Job : MapReduce.Job) = struct
       | [] -> acc
       | job :: tl -> assign tl (id+1) [(id, job)]@acc in
     assign jobs 0 []
-  
+
   (* functions that are called in list.map, assign job to a worker,
   wait until it finish, assign another one to it until there 
   is no more jobs left *)
@@ -186,6 +198,14 @@ module Make (Job : MapReduce.Job) = struct
         end
       else 
         assign_reduce_job worker
+
+  let maptbl_values_to_list () = 
+    List.flatten 
+      (Hashtbl.fold (fun key value acc -> acc @ [value]) map_results [])
+
+  let reducetbl_values_to_list () = 
+    Hashtbl.fold (fun key value acc -> acc @ [value]) reduce_results []
+
 
   let map_reduce inputs = 
     setup_connection () 
