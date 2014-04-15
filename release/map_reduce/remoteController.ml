@@ -46,8 +46,8 @@ module Make (Job : MapReduce.Job) = struct
         (try_with (fun () -> connect addr) >>= function
           | Core.Std.Error e -> return ()
           | Core.Std.Ok x -> 
-            connections := (Some (init x))::(!connections); 
-            return () )
+              connections := [(init x)]@(!connections); 
+              return () )
       )
 
   let (@) xs ys = List.rev_append (List.rev xs) ys
@@ -174,15 +174,12 @@ module Make (Job : MapReduce.Job) = struct
       else 
         assign_reduce_job worker
 
-   (* let map_reduce inputs = 
+(*   let map_reduce inputs = 
     setup_connection () 
-    >>= fun x -> initialize_input inputs 
-    >>|  
-  
+    >>| fun x -> assign_job_id inputs
+    >>=  
 
-
-  *)
-
+ *)
 
 end
 
