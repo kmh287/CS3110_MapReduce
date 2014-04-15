@@ -8,10 +8,11 @@ module Make (Job : MapReduce.Job) = struct
 
   module WResponse = Protocol.WorkerResponse(Job)
 
-  module Combine = Combiner.Make(Job)
+  module C = Combiner.Make(Job)
 
   let workerList  = ref []
   let connections = ref []
+
   let map_todo    = ref []
   let reduce_todo = ref []
 
@@ -60,8 +61,12 @@ module Make (Job : MapReduce.Job) = struct
 
   let (@) xs ys = List.rev_append (List.rev xs) ys
 
-  let hashtbl_values_to_list hbl = 
-    Hashtbl.fold (fun key value acc -> acc @ [value]) hbl []
+  let maptbl_values_to_list () = 
+    List.flatten 
+      (Hashtbl.fold (fun key value acc -> acc @ [value]) map_results [])
+
+  let reducetbl_values_to_list () = 
+    Hashtbl.fold (fun key value acc -> acc @ [value]) reduce_results []
 
   let get_job job_list = 
     match (!job_list) with
@@ -137,7 +142,7 @@ module Make (Job : MapReduce.Job) = struct
   (* wrap with a reduce request, wait for response, and 
   return () when finishes *)
   let reduce reader writer id_kis =
-    let (id, key, inters) = id_kis in 
+    let (id, (key, inters)) = id_kis in 
     let request = WRequest.ReduceRequest(key, inters) in
     compute request reader writer id
     
@@ -146,7 +151,6 @@ module Make (Job : MapReduce.Job) = struct
     let rec assign job_list id acc = match job_list with
       | [] -> acc
       | job :: tl -> assign tl (id+1) [(id, job)]@acc in
-    (* map_todo := (assign_id_input inputs) *)
     assign jobs 0 []
   
   (* functions that are called in list.map, assign job to a worker,
@@ -167,28 +171,39 @@ module Make (Job : MapReduce.Job) = struct
       else 
         assign_map_job worker
 
+  (* same logic as assign_map_job *)
   let rec assign_reduce_job worker =
     match (get_job reduce_todo) with
     | None -> return ();
-    | Some (id, key, inters) -> 
+    | Some (id, (key, inters)) -> 
       if not (Hashtbl.mem reduce_results id) 
       then 
         begin
           let (socket, reader, writer) = worker in
-            reduce reader writer (id, key, inters)
+            reduce reader writer (id, (key, inters))
           >>= (fun x -> 
             assign_reduce_job worker)
         end
       else 
         assign_reduce_job worker
 
-(*   let map_reduce inputs = 
+  let map_reduce inputs = 
     setup_connection () 
-    >>| fun x -> assign_job_id inputs
-    >>= Deferred.List.Map connections *)
-
-
-
+    >>| (fun x -> assign_job_id inputs)
+    >>= (fun map_job_list -> 
+          map_todo := map_job_list;
+          return ();)
+    >>= (fun x -> Deferred.List.map (!connections)
+                (fun worker -> assign_map_job worker)  )
+    >>= (fun x -> return (maptbl_values_to_list ()))
+    >>| C.combine
+    >>| (fun reduce_input -> assign_job_id reduce_input)
+    >>= (fun reduce_job_list -> 
+          reduce_todo := reduce_job_list;
+          return ();)
+    >>= (fun x -> Deferred.List.map (!connections)
+                (fun worker -> assign_reduce_job worker) )
+    >>= (fun x -> return (reducetbl_values_to_list ()  ) )
 
 end
 
