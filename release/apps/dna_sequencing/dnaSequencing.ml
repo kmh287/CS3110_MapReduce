@@ -59,18 +59,21 @@ let print_results results : unit =
 (******************************************************************************)
 
 module Job1 = struct
+  type identity = id * int * sequence.kind
   type input = sequence list 
-  type key = sequence.data
-  type inter = (sequence*int) 
-  type output = ((sequence*int) * (sequence*int)) list  
+  type key = string
+  type inter = identity  
+  type output = (identity * identity) list  
 
   let name = "dna.job1"
 
   let map input : (key * inter) list Deferred.t =
     let rec assembletenmer data acc offset = 
-      if String.length data < 10 then failwith "DNA data shorter than 10 chars"
+      if String.length data < 10 then failwith "DNA data shorter than 10 chars\n"
       else if String.length data = 10 then (data,(seq,offset))::acc 
-      else assembletenmer (String.sub data 1 (String.length data - 1)) (String.sub data 0 10)::acc offset+1 in
+      else assembletenmer 
+            (String.sub data 1 (String.length data - 1)) 
+            (String.sub data 0 10)::acc offset+1 in
 
     let rec assembleSequences slist acc = match slist with
       |[] -> acc
@@ -89,10 +92,11 @@ let () = MapReduce.register_job (module Job1)
 
 
 module Job2 = struct
-  type input
-  type key
-  type inter
-  type output
+  type identity = id * int * sequence.kind 
+  type input = (identity * identity) list
+  type key = id * id
+  type inter = sequence.offset * sequence.offset
+  type output = int * sequence.offset * sequence.offset
 
   let name = "dna.job2"
 
