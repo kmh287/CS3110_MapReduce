@@ -60,7 +60,7 @@ let print_results results : unit =
 
 module Job1 = struct
   type identity = id * int * dna_type
-  type input = sequence list 
+  type input = sequence
   type key = string
   type inter = identity  
   type output = (identity * identity) list  
@@ -82,7 +82,9 @@ module Job1 = struct
       else assembleTenMers (seq)
                            (offset+1)
                           (((String.sub seq.data offset 10),(seq.id,offset,seq.kind))::acc) in
-    return(List.fold_left (fun acc seq -> (assembleTenMers seq 0 []) @  acc) [] input) 
+    return (assembleTenMers input 0 []) 
+
+   (* return(List.fold_left (fun acc seq -> (assembleTenMers seq 0 []) @  acc) [] input) *)
  
   (*Helper to remove the third element from a tuple*) 
   let trd (a,b,c) = c 
@@ -125,7 +127,14 @@ module Job2 = struct
                                            (sndt (fst ele), sndt (snd ele)) )::acc) [] input )
 
   let reduce (key, inters) : output Deferred.t =
-    failwith "not sure yet" 
+    let sortInters a b = compare (abs ((fst a)-(snd a))) (abs ((fst b)-(snd b)))   in 
+    let sortedIntersList = List.sort sortInters inters in 
+    let rec produceMatch inters ref_offset read_offset length acc  = 
+      match inters with
+      |[] -> acc
+      |hd::tl -> match hd with
+        |(rf,re) -> if 
+
 end
 
 let () = MapReduce.register_job (module Job2)
@@ -141,7 +150,19 @@ module App  = struct
     module MR2 = Controller(Job2)
 
     let run (input : sequence list) : result list Deferred.t =
-      failwith "TODO" 
+      return ( input) 
+      >>= MR1.map_reduce
+      >>= (fun list -> Deferred.List.map list (fun (key,output) -> return output)) 
+      >>= MR2.map_reduce
+      >>= (fun list -> Deferred.List.map list 
+        (fun (key,output) -> 
+          match (key, output) with
+          | ((id1, id2), (len, off_ref, off_read)) -> return ( {length=len;
+                                                                ref = id1;
+                                                                read = id2;
+                                                                ref_off = off_ref;
+                                                                read_off = off_read} ) ) )
+      
 
     let main args =
       read_files args
