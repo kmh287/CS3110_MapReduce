@@ -127,13 +127,39 @@ module Job2 = struct
                                            (sndt (fst ele), sndt (snd ele)) )::acc) [] input )
 
   let reduce (key, inters) : output Deferred.t =
-    let sortInters a b = compare (abs ((fst a)-(snd a))) (abs ((fst b)-(snd b)))   in 
-    let sortedIntersList = List.sort sortInters inters in 
+    let sortInters a b = 
+      let delta1 = (abs ((fst a)-(snd a))) in
+      let delta2 = (abs ((fst b)-(snd b))) in
+      let temp_res = compare delta1 delta2 in
+      if temp_res = 0 then (compare (fst a) (fst b) )
+      else temp_res
+    in
+    let sortedIntersList = 
+      List.sort sortInters inters in 
     let rec produceMatch inters ref_offset read_offset length acc  = 
       match inters with
-      |[] -> acc
-      |hd::tl -> match hd with
-        |(rf,re) -> if 
+      |[] -> 
+        (* skip the dummy head when this is a empty list *)
+        if(ref_offset = (-1) ) then acc
+        else (acc @ [(ref_offset, read_offset, length)])
+      |hd::tl -> 
+        match hd with
+        |(cur_rf,cur_re) -> 
+          (* skip the dummy init head *)
+          if (ref_offset = -1) 
+            then produceMatch tl cur_rf cur_re 10 []
+          else 
+            if( (cur_rf - ref_offset) = (length - 10) ) 
+              && ( (cur_re - read_offset) = (length - 10) ) 
+            then produceMatch tl ref_offset read_offset (length+1) acc
+            else 
+              begin
+                produceMatch tl cur_rf cur_re 10 
+                  (acc @ [(ref_offset, read_offset, length)])
+              end
+    in 
+    retrun (produceMatch sortedIntersList (-1) (-1) 0 [])
+
 
 end
 
