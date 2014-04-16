@@ -1,6 +1,11 @@
 open Async.Std
 open MapReduce
 
+let workerList  = ref []
+
+let init addrs =
+    print_endline "start init remote controller address";
+    List.iter (fun addr -> workerList := (addr::(!workerList))) addrs
 
 module Make (Job : MapReduce.Job) = struct
     
@@ -10,7 +15,6 @@ module Make (Job : MapReduce.Job) = struct
 
   module C = Combiner.Make(Job)
 
-  let workerList  = ref []
   let connections = ref []
 
   let map_todo    = ref []
@@ -19,9 +23,6 @@ module Make (Job : MapReduce.Job) = struct
   let map_results      =    Hashtbl.create 1000
   let reduce_results   =    Hashtbl.create 1000
 
-  let init addrs =
-    List.iter (fun addr -> workerList := (addr::(!workerList))) addrs
-
   let connect addr = 
     Tcp.connect (Tcp.to_host_and_port (fst(addr)) (snd(addr)))
 
@@ -29,31 +30,44 @@ module Make (Job : MapReduce.Job) = struct
       (try_with (fun () -> return (Writer.write_line writer Job.name)) )
         >>= (function
         | Core.Std.Error e -> failwith "init write fail"
-        | Core.Std.Ok x -> return x  )
-         >>= fun x ->
-          Reader.read_line reader 
+        | Core.Std.Ok x -> 
+            (print_endline "init write success";
+            return (Some (socket, reader, writer))
+            )
+        )
+        (* return x 
+          >>= fun x ->
+          print_endline "start init read";
+          Reader.read_line reader  
           >>= (fun res -> 
             match res with
             | `Eof -> 
                 print_endline "init connection closed";
                 return None
             | `Ok(x) -> 
-              print_endline "init success";
-              return (Some (socket, reader, writer) ))
+                print_endline "init success";
+                return (Some (socket, reader, writer) )) *)
   
   let setup_connection () =
-    Deferred.List.iter  (!workerList)
+    Deferred.List.map  (!workerList)
       (fun addr ->
         (try_with (fun () -> connect addr) 
           >>= function
-          | Core.Std.Error e -> return ()
-          | Core.Std.Ok x -> init_connect x
+          | Core.Std.Error e -> 
+              (print_endline "setup_connection error";
+              return ())
+          | Core.Std.Ok x -> 
+            (print_endline "setup_connection success";
+            init_connect x)
           >>= fun con ->
             (match con with
-            | None -> return ();
+            | None -> 
+              (print_endline "connection is none";
+              return ();)
             | Some c -> 
-                connections := [c]@(!connections); 
-                return () )
+              (print_endline "update connection list";
+              connections := [c]@(!connections); 
+              return () ) )
         ) 
       )
 
@@ -76,32 +90,32 @@ module Make (Job : MapReduce.Job) = struct
   (* function that called in map or reduce, send request to worker and add
   the result into the result table.*)
   let compute request reader writer id =
-    (try_with 
-      (fun () -> return (WRequest.send writer request)) 
-      >>= function
+    print_endline "start compute";
+    (* (try_with  *)
+      ((* fun () ->  *)return (WRequest.send writer request)) 
+(*       >>= function
         | Core.Std.Error e -> (
           print_endline "map write fail";
           failwith "map write fail")
-        | Core.Std.Ok x -> return x  )
-    >>= fun x ->
-      (WResponse.receive reader)
+        | Core.Std.Ok x -> 
+          print_endline "map write success";
+          return ()  ) *)
+    >>= (fun x ->
+      print_endline "start waiting for response";
+      (WResponse.receive reader) )
     >>= (fun res -> 
+          print_endline "get response successfully";
           (match res with
             | `Eof -> (
               print_endline "map connection closed";
               failwith "map connection closed")
-            | `Ok x -> return x )
+            | `Ok x -> 
+              print_endline "map connection success"; 
+              return x )
         )
     >>= (fun result -> 
       match result with 
-      (* if the result is none, probably should add the job 
-      back to the job list *)
-      | None -> 
-        begin
-          print_endline "none result";
-          failwith "none result";
-        end
-      | Some WResponse.MapResult(lst)  ->
+      | WResponse.MapResult(lst) ->
         begin
           print_endline "map success";
           if (not (Hashtbl.mem map_results id)) 
@@ -113,7 +127,7 @@ module Make (Job : MapReduce.Job) = struct
           else
             return ();
         end
-      | Some WResponse.ReduceResult(output) ->
+      | WResponse.ReduceResult(output) ->
         begin
           print_endline "reduce success";
           if (not (Hashtbl.mem reduce_results id)) 
@@ -124,7 +138,7 @@ module Make (Job : MapReduce.Job) = struct
                   return ((Hashtbl.add reduce_results id (key, output)))
               | _ -> 
                 return (print_endline 
-                    "invalid reqest when receive reduce response") )
+                    "invalid request when receive reduce response") )
             end
           else
             return ()
@@ -139,11 +153,16 @@ module Make (Job : MapReduce.Job) = struct
   let map reader writer id_input = 
     let (id, input) = id_input in 
     let request = WRequest.MapRequest(input) in
+    print_endline "start send map request";
     (try_with 
       (fun () -> return (compute request reader writer id)) 
       >>= (function
-        | Core.Std.Error e -> return (insert_job map_todo id_input)
-        | Core.Std.Ok x -> x )
+        | Core.Std.Error e -> 
+          print_endline "map on this job fails";
+          return (insert_job map_todo id_input)
+        | Core.Std.Ok x -> 
+          print_endline "map on this job success";
+          x )
     )
 
   (* wrap with a reduce request, wait for response, and return () 
@@ -172,12 +191,15 @@ module Make (Job : MapReduce.Job) = struct
     match (get_job map_todo) with
     | None -> return ();
     | Some (id, input) ->
+      print_endline "get a job successfully in map phase";
       if not (Hashtbl.mem map_results id) 
       then 
         begin
           let (socket, reader, writer) = worker in
+              print_endline "map on this job";
               map reader writer (id, input)
           >>= (fun x -> 
+              print_endline "finish one job, continue working";
               assign_map_job worker)
         end
       else 
@@ -206,24 +228,40 @@ module Make (Job : MapReduce.Job) = struct
   let reducetbl_values_to_list () = 
     Hashtbl.fold (fun key value acc -> acc @ [value]) reduce_results []
 
-
   let map_reduce inputs = 
+    print_endline "start map reduce";
     setup_connection () 
-    >>| (fun x -> assign_job_id inputs)
+    >>| (fun x -> 
+      print_string "connection list size:";
+      print_int (List.length (!connections)); print_newline ();
+      print_endline "start assign map job ids";
+      assign_job_id inputs)
     >>= (fun map_job_list -> 
+          print_endline "update map todo list";
           map_todo := map_job_list;
           return ();)
-    >>= (fun x -> Deferred.List.map (!connections)
+    >>= (fun x -> 
+      print_endline "start map phase";
+      Deferred.List.map (!connections)
                 (fun worker -> assign_map_job worker)  )
-    >>= (fun x -> return (maptbl_values_to_list ()))
+    >>= (fun x -> 
+        print_endline "finish map phase, start to return map values";
+        return (maptbl_values_to_list ()))
     >>| C.combine
-    >>| (fun reduce_input -> assign_job_id reduce_input)
+    >>| (fun reduce_input -> 
+        print_endline "start assign reduce job ids";
+        assign_job_id reduce_input)
     >>= (fun reduce_job_list -> 
+          print_endline "update map todo list";
           reduce_todo := reduce_job_list;
           return ();)
-    >>= (fun x -> Deferred.List.map (!connections)
+    >>= (fun x -> 
+      print_endline "start reduce phase";
+      Deferred.List.map (!connections)
                 (fun worker -> assign_reduce_job worker) )
-    >>= (fun x -> return (reducetbl_values_to_list ()  ) )
+    >>= (fun x -> 
+        print_endline "finish reduce phase, start to return reduce values";
+        return (reducetbl_values_to_list ()  ) )
 
 end
 
