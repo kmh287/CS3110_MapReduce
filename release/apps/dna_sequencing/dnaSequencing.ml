@@ -81,10 +81,9 @@ module Job1 = struct
                                      (seq.data,(seq.id,offset,seq.kind))::acc
       else assembleTenMers (seq)
                            (offset+1)
-                          (((String.sub seq.data offset 10),(seq.id,offset,seq.kind))::acc) in
+                          (((String.sub seq.data offset 10),
+                            (seq.id,offset,seq.kind))::acc) in
     return (assembleTenMers input 0 []) 
-
-   (* return(List.fold_left (fun acc seq -> (assembleTenMers seq 0 []) @  acc) [] input) *)
  
   (*Helper to remove the third element from a tuple*) 
   let trd (a,b,c) = c 
@@ -124,16 +123,13 @@ module Job2 = struct
 
   let map input : (key * inter) list Deferred.t =
    return (  List.fold_left (fun acc ele ->( (fstt(fst ele), fstt(snd ele)), 
-                                           (sndt (fst ele), sndt (snd ele)) )::acc) [] input )
+                                           (sndt (fst ele), sndt (snd ele)) )::acc) 
+                                           [] input )
 
   let reduce (key, inters) : output Deferred.t =
-    let sortInters a b = compare (abs ((fst a)-(snd a))) (abs ((fst b)-(snd b)))   in 
+    let sortInters a b = compare (abs ((fst a)-(snd a))) 
+                                 (abs ((fst b)-(snd b)))   in 
     let sortedIntersList = List.sort sortInters inters in 
-    let rec produceMatch inters ref_offset read_offset length acc  = 
-      match inters with
-      |[] -> acc
-      |hd::tl -> match hd with
-        |(rf,re) -> if 
 
 end
 
@@ -152,8 +148,13 @@ module App  = struct
     let run (input : sequence list) : result list Deferred.t =
       return ( input) 
       >>= MR1.map_reduce
-      >>= (fun list -> Deferred.List.map list (fun (key,output) -> return output)) 
+
+      >>= (fun list -> Deferred.List.map list 
+        (fun (key,output) -> 
+          return output)) 
+
       >>= MR2.map_reduce
+
       >>= (fun list -> Deferred.List.map list 
         (fun (key,output) -> 
           match (key, output) with
