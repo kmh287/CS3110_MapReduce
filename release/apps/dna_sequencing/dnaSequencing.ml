@@ -59,7 +59,7 @@ let print_results results : unit =
 (******************************************************************************)
 
 module Job1 = struct
-  type identity = id * int * sequence.kind
+  type identity = id * int * dna_type
   type input = sequence list 
   type key = string
   type inter = identity  
@@ -67,24 +67,36 @@ module Job1 = struct
 
   let name = "dna.job1"
 
+(*Override @ to make it a tail recursive function*)
+  let (@) a b = List.rev (List.rev_append a b)
+ 
   let map input : (key * inter) list Deferred.t =
-    let rec assembletenmer data acc offset = 
-      if String.length data < 10 then failwith "DNA data shorter than 10 chars\n"
-      else if String.length data = 10 then (data,(seq,offset))::acc 
-      else assembletenmer 
-            (String.sub data 1 (String.length data - 1)) 
-            (String.sub data 0 10)::acc offset+1 in
 
-    let rec assembleSequences slist acc = match slist with
-      |[] -> acc
-      |hd::tl -> assembleSequences tl ( (assembletenmer hd [] 0)::acc) in 
-    assembleSequences input [] 
+    (*assembleTenMers goes through a sequence and finds every continuous 10-char
+    string contained in it. The string is stored as the key, and the identifying
+    information for the string is stored as the inter.*)
+    let rec assembleTenMers seq offset acc =
+      if (String.length seq.data - offset) < 10 then failwith "malformed DNA"
+      else if (String.length seq.data - offset) = 10 then 
+                                     (seq.data,(seq.id,offset,seq.kind))::acc
+      else assembleTenMers (seq)
+                           (offset+1)
+                          (((String.sub seq.data offset 10),(seq.id,offset,seq.kind))::acc) in
+    return(List.fold_left (fun acc seq -> (assembleTenMers seq 0 []) @  acc) [] input) 
+ 
+  (*Helper to remove the third element from a tuple*) 
+  let trd (a,b,c) = c 
 
+    (*Reduce builds a list of reads and refs from the inter list, then returns 
+      the cartesian product of these sets *)
   let reduce (key, inters) : output Deferred.t =
-    let refList = List.filter (fst(element).kind = Ref) inters in
-    let readList = List.filter (fst(element).kind = Read) inters in 
-    let allPairs reference = List.fold_left (fun acc ele -> (reference,ele)::acc)  [] readList in 
-    return(List.flatten (List.map allPairs refList)) 
+    (*Build the Ref and Read lists, the third element of each tuple is the dna_Type*)
+    let refList =  List.filter (fun ele -> trd ele  = Ref ) inters in
+    let readList = List.filter (fun ele -> trd ele  = Read ) inters in 
+    let cartesianProduct list1 list2 = 
+      let cartHelper ele = List.fold_left (fun acc x  -> (ele,x)::acc) [] list2 in 
+      List.fold_left (fun acc x -> (cartHelper x)@acc) [] list1 in 
+    return ( cartesianProduct refList readList ) 
 
 end
 let () = MapReduce.register_job (module Job1)
@@ -92,19 +104,28 @@ let () = MapReduce.register_job (module Job1)
 
 
 module Job2 = struct
-  type identity = id * int * sequence.kind 
+  type identity = id * int * dna_type 
   type input = (identity * identity) list
   type key = id * id
-  type inter = sequence.offset * sequence.offset
-  type output = int * sequence.offset * sequence.offset
+
+           (*Ref offset, Read offset*)
+  type inter = int * int
+
+            (*Ref_off, Read_off, length*)
+  type output = int * int * int
 
   let name = "dna.job2"
 
+  let fstt (a,b,c) = a
+  let sndt (a,b,c) = b
+  let trdt (a,b,c) = c
+
   let map input : (key * inter) list Deferred.t =
-    failwith "Well, I asked you if you wanted any memory and refs / You said you wanted functional data types instead"
+   return (  List.fold_left (fun acc ele ->( (fstt(fst ele), fstt(snd ele)), 
+                                           (sndt (fst ele), sndt (snd ele)) )::acc) [] input )
 
   let reduce (key, inters) : output Deferred.t =
-    failwith "We're just talking about the future / Forget about the past / I'll always stay functional / It's never gonna segfault, never gonna segfault"
+    failwith "not sure yet" 
 end
 
 let () = MapReduce.register_job (module Job2)
@@ -120,7 +141,7 @@ module App  = struct
     module MR2 = Controller(Job2)
 
     let run (input : sequence list) : result list Deferred.t =
-      failwith "Rock 'n roll ain't noise pollution / Rock 'n' roll ain't gonna die / Rock 'n' roll ain't noise pollution / Rock 'n' roll it will survive"
+      failwith "TODO" 
 
     let main args =
       read_files args
