@@ -60,8 +60,9 @@ module App  = struct
     List.iter print sorted
 
 
-  (** for each line f in the master list, output a pair containing the filename
-      f and the contents of the file named by f.  *)
+  (** for each line f in the master list, output a pair 
+      containing the filename f and the contents of the 
+      file named by f.  *)
   let read (master_file : filename) : (filename * string) list Deferred.t =
     Reader.file_lines master_file >>= fun filenames ->
 
@@ -73,14 +74,16 @@ module App  = struct
   module Make (Controller : MapReduce.Controller) = struct
     module MR = Controller(Job)
 
-    (** The input should be a single file name.  The named file should contain
-        a list of files to index. *)
+    (*The input should be a single file name.  
+      The named file should contain
+      a list of files to index. *)
     let main args = 
-      if args = [] then failwith "No file provided"   *)
-      else if List.length args > 1 then failwith "Applied to too many arguments" 
+      if args = [] then failwith "No file provided"
+      else if List.length args > 1 then failwith 
+                               "Applied to too many arguments" 
       else Reader.file_lines (List.hd args)
-        >>= MR.map_reduce (*call map reduce on each of the files listed in the 
-                            master file*)
+        >>= MR.map_reduce (*call map reduce on each of the files 
+                            listed in the master file*)
         >>|output  
       
   end
