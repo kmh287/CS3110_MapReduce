@@ -242,8 +242,8 @@ module Make (Job : MapReduce.Job) = struct
           return ();)
     >>= (fun x -> 
       print_endline "start map phase";
-      Deferred.List.map (!connections)
-                (fun worker -> assign_map_job worker)  )
+      Deferred.List.map ~how:`Parallel (!connections) 
+        ~f:(fun worker -> assign_map_job worker)  )
     >>= (fun x -> 
         print_endline "finish map phase, start to return map values";
         return (maptbl_values_to_list ()))
@@ -257,8 +257,8 @@ module Make (Job : MapReduce.Job) = struct
           return ();)
     >>= (fun x -> 
       print_endline "start reduce phase";
-      Deferred.List.map (!connections)
-                (fun worker -> assign_reduce_job worker) )
+      Deferred.List.map ~how:`Parallel (!connections) 
+        ~f:(fun worker -> assign_reduce_job worker)  )
     >>= (fun x -> 
         print_endline "finish reduce phase, start to return reduce values";
         return (reducetbl_values_to_list ()  ) )
