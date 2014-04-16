@@ -113,7 +113,7 @@ module Job2 = struct
   type inter = int * int
 
             (*Ref_off, Read_off, length*)
-  type output = int * int * int
+  type output = (int * int * int) list
 
   let name = "dna.job2"
 
