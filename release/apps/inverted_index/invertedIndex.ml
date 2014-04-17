@@ -23,25 +23,17 @@ module Job = struct
   it came from *)
   let map input : (key * inter) list Deferred.t =
     let fileName = input in
-    print_endline "start reading files";
     try_with
       (fun () -> Reader.file_contents input)
       >>= (function
-        | Core.Std.Error e -> 
-          print_endline "read function in job map fails";
-          failwith "read function in job map fails"
-        | Core.Std.Ok x -> 
-          print_endline "read function in job map success";
-          return x)
+        | Core.Std.Error e -> failwith "read function in job map fails"
+        | Core.Std.Ok x -> return x)
     >>= fun contents -> 
-    print_endline "start spliting words";
-    return (AppUtils.split_words contents)
+      return (AppUtils.split_words contents)
     >>= fun wordList -> 
-      print_endline "start fold on list";
       return (List.fold_left 
         (fun acc ele -> WS.add ele acc) WS.empty wordList)
     >>= fun wordSet ->  
-      print_endline "return word sets";
       (Deferred.List.map 
         (WS.elements wordSet) (fun x -> return (x,fileName)) )
 

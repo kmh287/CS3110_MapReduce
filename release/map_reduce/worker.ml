@@ -8,69 +8,48 @@ module Make (Job : MapReduce.Job) = struct
   (* see .mli *)
   let run r w =  
     let rec continue_run r w =
-      print_endline "worker start wait for request";
       WRequest.receive r >>= function
           | `Eof    -> return ()
           | `Ok request -> 
-            print_endline "worker received a request";
             (match request with
             | WRequest.MapRequest(input) -> 
-              (print_endline "worker received a map request";
-              (* Job.map input *)
-              try_with 
+              (try_with 
                 (fun () -> (Job.map input)) 
                 >>= (function
                 | Core.Std.Error e -> 
-                  print_endline "worker call app map function fails";
                   return (WResponse.JobFailed 
                     "worker call app map function fails")
                 | Core.Std.Ok result -> 
-                  print_endline "worker call app map function success";
                   return (WResponse.MapResult(result)) )
               )
               >>= (fun response -> 
-                print_endline "worker caculate map successfully";
-                print_endline "start to send map response back";
                 (try_with 
                   (fun () -> return (WResponse.send w response)) 
                 >>= function
-                  | Core.Std.Error e -> (
-                    print_endline "map response fail";
-                    failwith "map response fail")
-                  | Core.Std.Ok x -> (
-                    print_endline "map response success";
-                    return x ) )
+                  | Core.Std.Error e -> failwith "map response fail"
+                  | Core.Std.Ok x -> return x 
+                )
               )
               >>= ( fun x -> continue_run r w)
             | WRequest.ReduceRequest(key, inters) -> 
-              (print_endline "worker received a reduce request";
-              try_with
+              (try_with
                 (fun () -> Job.reduce (key, inters)) 
               >>= (function
               | Core.Std.Error e -> 
-                print_endline "worker call app reduce function fails";
                 return (WResponse.JobFailed 
                   "worker call app reduce function fails")
               | Core.Std.Ok result -> 
-                print_endline "worker call app reduce function success";
                 return (WResponse.ReduceResult(result)) )
               )
               >>= (fun response -> 
-                print_endline "worker caculate reduce successfully";
-                print_endline "start to send reduce response back";
                 (try_with 
                   (fun () -> return (WResponse.send w response)) 
                 >>= function
-                  | Core.Std.Error e -> (
-                    print_endline "reduce response fail";
-                    failwith "reduce response fail")
-                  | Core.Std.Ok x -> (
-                    print_endline "reduce response success";
-                    return x ) )
+                  | Core.Std.Error e -> failwith "reduce response fail"
+                  | Core.Std.Ok x -> return x 
+                )
               )
-              >>= ( fun x -> 
-                print_endline "continue run";
-                continue_run r w )
+              >>= ( fun x -> continue_run r w )
           )
   in continue_run r w
 
