@@ -23,12 +23,27 @@ module Job = struct
   it came from *)
   let map input : (key * inter) list Deferred.t =
     let fileName = input in
-    Reader.file_contents input
-    >>= fun contents -> return (AppUtils.split_words contents)
-    >>= fun wordList -> return (List.fold_left 
-                                  (fun acc ele -> WS.add ele acc) WS.empty wordList)
-    >>= fun wordSet ->  return (List.map 
-                                  (fun x -> (x,fileName)) (WS.elements wordSet) )
+    print_endline "start reading files";
+    try_with
+      (fun () -> Reader.file_contents input)
+      >>= (function
+        | Core.Std.Error e -> 
+          print_endline "read function in job map fails";
+          failwith "read function in job map fails"
+        | Core.Std.Ok x -> 
+          print_endline "read function in job map success";
+          return x)
+    >>= fun contents -> 
+    print_endline "start spliting words";
+    return (AppUtils.split_words contents)
+    >>= fun wordList -> 
+      print_endline "start fold on list";
+      return (List.fold_left 
+        (fun acc ele -> WS.add ele acc) WS.empty wordList)
+    >>= fun wordSet ->  
+      print_endline "return word sets";
+      (Deferred.List.map 
+        (WS.elements wordSet) (fun x -> return (x,fileName)) )
 
 (*Reduce takes a word and all the filenames that the word appears in. 
   All of the heavy lifting was already done by the combiner, so returning
