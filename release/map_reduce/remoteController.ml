@@ -1,6 +1,10 @@
 open Async.Std
 open MapReduce
 
+exception InfrastructureFailure of string
+exception MapFailed             of string
+exception ReduceFailed          of string
+
 let workerList  = ref []
 
 let init addrs =
@@ -92,17 +96,9 @@ module Make (Job : MapReduce.Job) = struct
 
   (* function that called in map or reduce, send request to worker and add
   the result into the result table.*)
-  let compute request reader writer id =
-    print_endline "start compute";
-    (* (try_with  *)
-      ((* fun () ->  *)return (WRequest.send writer request)) 
-(*       >>= function
-        | Core.Std.Error e -> (
-          print_endline "map write fail";
-          failwith "map write fail")
-        | Core.Std.Ok x -> 
-          print_endline "map write success";
-          return ()  ) *)
+  let compute request reader writer id phase =
+    (print_endline "start compute";
+    return (WRequest.send writer request)) 
     >>= (fun x ->
       print_endline "start waiting for response";
       (WResponse.receive reader) )
@@ -110,10 +106,10 @@ module Make (Job : MapReduce.Job) = struct
           print_endline "get response successfully";
           (match res with
             | `Eof -> (
-              print_endline "map connection closed";
-              failwith "map connection closed")
+              print_endline "connection closed";
+              failwith "connection closed")
             | `Ok x -> 
-              print_endline "map connection success"; 
+              print_endline "connection success"; 
               return x )
         )
     >>= (fun result -> 
@@ -146,9 +142,16 @@ module Make (Job : MapReduce.Job) = struct
           else
             return ()
         end
-      | _ -> (
-        print_endline "invalid response";
-        failwith "invalid response")
+      | WResponse.JobFailed reason -> (
+        print_endline reason;
+        if phase = "map" 
+          then 
+            (print_endline "raise map failed";
+            raise (MapFailed reason))
+        else 
+          (print_endline "raise reduce failed";
+          raise (ReduceFailed reason))
+        )
     )
 
   (* wrap with a map request, wait for response, and return () 
@@ -158,10 +161,14 @@ module Make (Job : MapReduce.Job) = struct
     let request = WRequest.MapRequest(input) in
     print_endline "start send map request";
     (try_with 
-      (fun () -> return (compute request reader writer id)) 
+      (fun () -> (compute request reader writer id "map")) 
       >>= (function
         | Core.Std.Error e -> 
           print_endline "map on this job fails";
+          (match e with
+          | MapFailed(reason) -> print_endline "Map Failed"
+          | ReduceFailed(reason) -> print_endline "Reduce Failed"
+          | _ -> print_endline "regular fail");
           (* if this job fails, return false to tell the higher level 
           function to remove the worker and insert the job back 
           to the todo list *)
@@ -169,8 +176,7 @@ module Make (Job : MapReduce.Job) = struct
           >>= (fun x -> return false)
         | Core.Std.Ok x -> 
           print_endline "map on this job success";
-          x
-          >>= (fun x -> return true) )
+          return true)
     )
 
   (* wrap with a reduce request, wait for response, and return () 
@@ -179,7 +185,7 @@ module Make (Job : MapReduce.Job) = struct
     let (id, (key, inters)) = id_kis in 
     let request = WRequest.ReduceRequest(key, inters) in
     (try_with 
-      (fun () -> return (compute request reader writer id)) 
+      (fun () -> (compute request reader writer id "reduce")) 
       >>= (function
         | Core.Std.Error e -> 
           print_endline "reduce on this job fails";
@@ -190,8 +196,7 @@ module Make (Job : MapReduce.Job) = struct
           >>= (fun x -> return false)
         | Core.Std.Ok x -> 
           print_endline "reduce on this job success";
-          x
-          >>= (fun x -> return true) )
+          return true)
     )
     
   (* initialize every job with a unique id, return a (id, job) list *)
@@ -224,6 +229,8 @@ module Make (Job : MapReduce.Job) = struct
               else 
                 (print_endline "fail on map one job, return";
                 return () )
+                (* return (Socket.shutdown socket `Both);
+                >>= fun x -> return ()) *)
               )
         end
       else 
@@ -248,6 +255,8 @@ module Make (Job : MapReduce.Job) = struct
               else 
                 (print_endline "fail on reduce one job, return";
                 return () )
+                (* return (Socket.shutdown socket `Both);
+                >>= fun x -> return () ) *)
               )
         end
       else 
@@ -278,7 +287,12 @@ module Make (Job : MapReduce.Job) = struct
         ~f:(fun worker -> assign_map_job worker)  )
     >>= (fun x -> 
         print_endline "finish map phase, start to return map values";
-        return (maptbl_values_to_list ()))
+        (match get_job map_todo with
+          | None -> return (maptbl_values_to_list ())
+          | Some _ -> 
+            raise 
+              (InfrastructureFailure "all worker fail during map phase")
+        ))
     >>| C.combine
     >>| (fun reduce_input -> 
         print_string "length of reduce_input list is: ";
@@ -296,7 +310,14 @@ module Make (Job : MapReduce.Job) = struct
         ~f:(fun worker -> assign_reduce_job worker)  )
     >>= (fun x -> 
         print_endline "finish reduce phase, start to return reduce values";
-        return (reducetbl_values_to_list ()  ) )
+        (match get_job reduce_todo with
+          | None -> return (reducetbl_values_to_list () )
+          | Some _ -> 
+            raise 
+              (InfrastructureFailure "all worker fail during reduce phase")
+        ) )
+         
+        
 
 end
 
