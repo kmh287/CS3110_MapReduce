@@ -149,8 +149,8 @@ module Job2 = struct
           if (ref_offset = -1) 
             then produceMatch tl cur_rf cur_re 10 []
           else 
-            if( (cur_rf - ref_offset) = (length - 10) ) 
-              && ( (cur_re - read_offset) = (length - 10) ) 
+            if( (cur_rf - ref_offset) = (length - 10 + 1) ) 
+              && ( (cur_re - read_offset) = (length - 10 + 1) ) 
             then produceMatch tl ref_offset read_offset (length+1) acc
             else 
               begin
