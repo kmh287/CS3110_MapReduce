@@ -176,6 +176,24 @@ module App  = struct
     module MR2 = Controller(Job2)
 
     let run (input : sequence list) : result list Deferred.t =
+
+    (*Helpers to convert the output list into a result list*)
+    let rec assembleResults id1 id2 matchList acc =
+      match matchList with 
+      |[] -> acc
+      |(off_ref, off_read,len)::tl ->  assembleResults id1 id2 tl 
+                                          ({length=len;
+                                           ref = id1;
+                                           read = id2;
+                                           ref_off = off_ref;
+                                           read_off = off_read}::acc) in
+    let extractMatches (key,output) =  
+          match (key, output) with
+          | ((id1, id2), matchList) -> 
+            return (assembleResults id1 id2 matchList []) in 
+
+
+
       return ( input) 
       >>= MR1.map_reduce
 
@@ -186,14 +204,9 @@ module App  = struct
       >>= MR2.map_reduce
 
       >>= (fun list -> Deferred.List.map list 
-        (fun (key,output) -> 
-          match (key, output) with
-          | ((id1, id2), (len, off_ref, off_read)) -> return ( {length=len;
-                                                                ref = id1;
-                                                                read = id2;
-                                                                ref_off = off_ref;
-                                                                read_off = off_read} ) ) )
-      
+        extractMatches)
+
+      >>= fun list ->  return ( List.flatten list )
 
     let main args =
       read_files args
