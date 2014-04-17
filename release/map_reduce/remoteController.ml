@@ -225,7 +225,9 @@ module Make (Job : MapReduce.Job) = struct
           >>= (fun success -> 
               if success then
                 (print_endline "finish one job, continue working";
-                assign_map_job worker)
+                assign_map_job worker
+                >>= (fun x -> print_endline "return recursive calls";
+                return ()) )
               else 
                 (print_endline "fail on map one job, return";
                 return () )
