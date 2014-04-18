@@ -6,11 +6,11 @@ let create () : 'a t =
   Pipe.create()
 
 let push (q:'a t) (x:'a) =
-  Pipe.write (snd q) x
+  ignore (Pipe.write (snd q) x)
 
 let pop  (q:'a t) =
-  Pipe.read (fst q) >>= 
-    (fun a -> match a with
+  Pipe.read (fst q)
+  >>|(fun a -> match a with
       |`Ok(x) -> x
       |`Eof -> failwith "closed")
 
