@@ -12,6 +12,6 @@ let deferred_map l f =
   let rec helper l acc = 
       match l with
       | [] -> (return acc)
-      | hd::tl -> (hd) >>= (fun x -> helper tl (x::acc))
+      | hd::tl -> (hd) >>= (fun x -> helper tl (acc@[x]))
   in
-  helper tempList []
+  helper tempList [] 
